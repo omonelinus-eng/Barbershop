@@ -176,6 +176,16 @@
   .stock-name{font-size:13px;color:var(--text);font-weight:500;}
   .stock-meta{font-family:var(--font-m);font-size:11px;color:var(--text-dim);}
 
+  /* ---------- dropdown (row actions) ---------- */
+  .dropdown{position:relative;display:inline-block;}
+  .dropdown-menu{position:absolute;right:0;top:calc(100% + 4px);background:var(--card);border:1px solid var(--line);
+    border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.16);z-index:20;min-width:130px;padding:4px;}
+  .dropdown-item{display:block;width:100%;text-align:left;padding:7px 10px;border:none;background:transparent;
+    border-radius:6px;font-size:12.5px;color:var(--text);}
+  .dropdown-item:hover{background:var(--paper-dim);}
+  .dropdown-item.danger{color:var(--red-deep);}
+  .inline-select{font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--text);}
+
   /* ---------- report tabs ---------- */
   .report-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
   .report-tab{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:12.5px;font-weight:600;}
@@ -274,7 +284,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 import {
   getFirestore, doc, setDoc, getDoc, collection,
-  onSnapshot, updateDoc, serverTimestamp,
+  onSnapshot, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -364,107 +374,192 @@ const ICONS = {
 };
 
 /* ============================================================
-   MOCK OPERATIONAL DATA
-   (Staff/auth below is 100% real Firebase. These modules keep demo
-   data so every screen is fully explorable — swap in Firestore
-   collections here using the same pattern as the Staff page.)
+   LIVE FIRESTORE DATA STORE
+   Every module in this app (Barbers, Services, Customers, Inventory,
+   Suppliers, Expenses, Appointments, POS, Payroll, Reports, Audit)
+   reads and writes real Firestore collections through DATA below.
+   Make sure your Firestore rules allow authenticated read/write on:
+   barbers, services, customers, inventory, suppliers, expenses,
+   appointments, sales, audit — the same way 'users' already works.
    ============================================================ */
-const BARBERS = [
-  { id: "B1", name: "Otieno Mwangi", specialty: "Fades & Design", status: "Active", customers: 142, revenue: 186400, commission: 55920, tips: 9200, rating: 4.9, attendance: "98%" },
-  { id: "B2", name: "Kevin Wafula", specialty: "Beard Sculpting", status: "Active", customers: 118, revenue: 151200, commission: 45360, tips: 6100, rating: 4.7, attendance: "95%" },
-  { id: "B3", name: "Brian Kiptoo", specialty: "Classic Cuts", status: "Active", customers: 97, revenue: 121000, commission: 36300, tips: 4400, rating: 4.6, attendance: "100%" },
-  { id: "B4", name: "Dennis Achieng", specialty: "Dreadlocks", status: "On Leave", customers: 64, revenue: 88300, commission: 26490, tips: 3100, rating: 4.8, attendance: "89%" },
-  { id: "B5", name: "Felix Ouma", specialty: "Kids & Classic", status: "Active", customers: 133, revenue: 109500, commission: 32850, tips: 5200, rating: 4.5, attendance: "97%" },
-  { id: "B6", name: "Samuel Njoroge", specialty: "VIP / Colour", status: "Active", customers: 71, revenue: 143700, commission: 43110, tips: 7800, rating: 5.0, attendance: "100%" },
-];
-const SERVICES = [
-  { id: "S1", name: "Classic Haircut", category: "Hair", price: 400, duration: 30, commission: "30%", status: "Active" },
-  { id: "S2", name: "Skin Fade", category: "Hair", price: 600, duration: 40, commission: "30%", status: "Active" },
-  { id: "S3", name: "Beard Trim", category: "Beard", price: 250, duration: 20, commission: "35%", status: "Active" },
-  { id: "S4", name: "Hair Wash", category: "Wash", price: 150, duration: 15, commission: "25%", status: "Active" },
-  { id: "S5", name: "Hair Colouring", category: "Colour", price: 1500, duration: 60, commission: "30%", status: "Active" },
-  { id: "S6", name: "Facial", category: "Skin", price: 900, duration: 35, commission: "30%", status: "Active" },
-  { id: "S7", name: "Dreadlocks Retouch", category: "Dreadlocks", price: 1200, duration: 90, commission: "30%", status: "Active" },
-  { id: "S8", name: "Hot Towel Shave", category: "Beard", price: 350, duration: 25, commission: "35%", status: "Active" },
-  { id: "S9", name: "Kids Haircut", category: "Hair", price: 300, duration: 25, commission: "30%", status: "Active" },
-  { id: "S10", name: "VIP Full Package", category: "VIP", price: 2500, duration: 90, commission: "25%", status: "Active" },
-  { id: "S11", name: "Eyebrow Trim", category: "Skin", price: 150, duration: 10, commission: "35%", status: "Inactive" },
-  { id: "S12", name: "Scalp Treatment", category: "Hair", price: 800, duration: 30, commission: "30%", status: "Active" },
-];
-const CUSTOMERS = [
-  { id: "C1", name: "James Mutua", phone: "0712 334 552", visits: 24, preferredBarber: "Otieno Mwangi", membership: "VIP", spend: 18400, lastVisit: "2026-07-21" },
-  { id: "C2", name: "Peter Kamau", phone: "0721 445 990", visits: 11, preferredBarber: "Kevin Wafula", membership: "Standard", spend: 6600, lastVisit: "2026-07-18" },
-  { id: "C3", name: "Alex Njuguna", phone: "0733 210 887", visits: 3, preferredBarber: "Brian Kiptoo", membership: "New", spend: 1200, lastVisit: "2026-07-24" },
-  { id: "C4", name: "David Omondi", phone: "0700 991 220", visits: 32, preferredBarber: "Samuel Njoroge", membership: "VIP", spend: 41200, lastVisit: "2026-07-25" },
-  { id: "C5", name: "Ibrahim Hassan", phone: "0745 667 123", visits: 8, preferredBarber: "Felix Ouma", membership: "Standard", spend: 4100, lastVisit: "2026-07-10" },
-  { id: "C6", name: "Collins Barasa", phone: "0798 224 561", visits: 15, preferredBarber: "Otieno Mwangi", membership: "Standard", spend: 9800, lastVisit: "2026-07-22" },
-  { id: "C7", name: "Simon Kariuki", phone: "0711 887 340", visits: 1, preferredBarber: "Dennis Achieng", membership: "New", spend: 700, lastVisit: "2026-07-19" },
-  { id: "C8", name: "Emmanuel Chege", phone: "0722 556 781", visits: 19, preferredBarber: "Kevin Wafula", membership: "VIP", spend: 22300, lastVisit: "2026-07-23" },
-  { id: "C9", name: "Victor Odera", phone: "0790 112 004", visits: 6, preferredBarber: "Brian Kiptoo", membership: "Standard", spend: 3300, lastVisit: "2026-07-14" },
-  { id: "C10", name: "Musa Abdi", phone: "0708 776 213", visits: 27, preferredBarber: "Samuel Njoroge", membership: "VIP", spend: 33900, lastVisit: "2026-07-20" },
-];
-const APPOINTMENTS = [
-  { id: "A1", time: "09:00", customer: "James Mutua", barber: "Otieno Mwangi", service: "Skin Fade", status: "Confirmed", type: "Booking" },
-  { id: "A2", time: "09:30", customer: "Walk-in", barber: "Brian Kiptoo", service: "Classic Haircut", status: "In Progress", type: "Walk-in" },
-  { id: "A3", time: "10:00", customer: "David Omondi", barber: "Samuel Njoroge", service: "VIP Full Package", status: "Confirmed", type: "Booking" },
-  { id: "A4", time: "10:15", customer: "Peter Kamau", barber: "Kevin Wafula", service: "Beard Trim", status: "No-show", type: "Booking" },
-  { id: "A5", time: "10:45", customer: "Walk-in", barber: "Felix Ouma", service: "Kids Haircut", status: "Completed", type: "Walk-in" },
-  { id: "A6", time: "11:00", customer: "Emmanuel Chege", barber: "Kevin Wafula", service: "Hair Colouring", status: "Confirmed", type: "Booking" },
-  { id: "A7", time: "11:30", customer: "Musa Abdi", barber: "Samuel Njoroge", service: "Beard Trim", status: "Cancelled", type: "Booking" },
-  { id: "A8", time: "12:00", customer: "Alex Njuguna", barber: "Brian Kiptoo", service: "Classic Haircut", status: "Completed", type: "Booking" },
-  { id: "A9", time: "13:00", customer: "Walk-in", barber: "Otieno Mwangi", service: "Skin Fade", status: "In Progress", type: "Walk-in" },
-  { id: "A10", time: "13:30", customer: "Collins Barasa", barber: "Otieno Mwangi", service: "Hot Towel Shave", status: "Confirmed", type: "Booking" },
-];
-const SALES = [
-  { id: "R-1042", date: "2026-07-25", time: "13:42", customer: "James Mutua", barber: "Otieno Mwangi", items: "Skin Fade, Beard Trim", amount: 850, method: "M-Pesa", cashier: "Ann Wanjiru" },
-  { id: "R-1041", date: "2026-07-25", time: "13:10", customer: "Walk-in", barber: "Felix Ouma", items: "Kids Haircut", amount: 300, method: "Cash", cashier: "Ann Wanjiru" },
-  { id: "R-1040", date: "2026-07-25", time: "12:55", customer: "David Omondi", barber: "Samuel Njoroge", items: "VIP Full Package", amount: 2500, method: "Card", cashier: "Ann Wanjiru" },
-  { id: "R-1039", date: "2026-07-25", time: "12:20", customer: "Alex Njuguna", barber: "Brian Kiptoo", items: "Classic Haircut", amount: 400, method: "Cash", cashier: "Brenda Achola" },
-  { id: "R-1038", date: "2026-07-25", time: "11:48", customer: "Emmanuel Chege", barber: "Kevin Wafula", items: "Hair Colouring, Hair Wash", amount: 1650, method: "M-Pesa", cashier: "Brenda Achola" },
-  { id: "R-1037", date: "2026-07-24", time: "17:30", customer: "Collins Barasa", barber: "Otieno Mwangi", items: "Hot Towel Shave", amount: 350, method: "Cash", cashier: "Ann Wanjiru" },
-  { id: "R-1036", date: "2026-07-24", time: "16:05", customer: "Musa Abdi", barber: "Samuel Njoroge", items: "Beard Trim, Facial", amount: 1150, method: "Mixed", cashier: "Ann Wanjiru" },
-  { id: "R-1035", date: "2026-07-24", time: "15:40", customer: "Ibrahim Hassan", barber: "Felix Ouma", items: "Classic Haircut", amount: 400, method: "M-Pesa", cashier: "Brenda Achola" },
-  { id: "R-1034", date: "2026-07-24", time: "14:12", customer: "Victor Odera", barber: "Brian Kiptoo", items: "Scalp Treatment", amount: 800, method: "Cash", cashier: "Ann Wanjiru" },
-  { id: "R-1033", date: "2026-07-23", time: "18:02", customer: "Simon Kariuki", barber: "Dennis Achieng", items: "Dreadlocks Retouch", amount: 1200, method: "M-Pesa", cashier: "Brenda Achola" },
-];
-const INVENTORY = [
-  { id: "I1", name: "Clipper Blades (set)", category: "Tools", stock: 24, reorder: 10, unitCost: 450, supplier: "Kinyozi Supplies Co.", status: "OK" },
-  { id: "I2", name: "Hair Gel 500ml", category: "Products", stock: 6, reorder: 12, unitCost: 220, supplier: "Salon World Ltd", status: "Low" },
-  { id: "I3", name: "Shaving Cream", category: "Products", stock: 18, reorder: 10, unitCost: 180, supplier: "Salon World Ltd", status: "OK" },
-  { id: "I4", name: "Hair Dye - Black", category: "Colour", stock: 3, reorder: 8, unitCost: 650, supplier: "ColourPro Kenya", status: "Low" },
-  { id: "I5", name: "Towels (pack of 10)", category: "Consumables", stock: 9, reorder: 5, unitCost: 1200, supplier: "Textile Direct", status: "OK" },
-  { id: "I6", name: "Sanitizer 1L", category: "Consumables", stock: 2, reorder: 6, unitCost: 300, supplier: "Salon World Ltd", status: "Critical" },
-  { id: "I7", name: "Shampoo 1L", category: "Products", stock: 14, reorder: 8, unitCost: 380, supplier: "Salon World Ltd", status: "OK" },
-  { id: "I8", name: "Wax Tin", category: "Products", stock: 21, reorder: 10, unitCost: 260, supplier: "ColourPro Kenya", status: "OK" },
-];
-const SUPPLIERS = [
-  { id: "SUP1", name: "Kinyozi Supplies Co.", contact: "0722 111 222", products: "Blades, Clippers", outstanding: 4500, lastPayment: "2026-07-12" },
-  { id: "SUP2", name: "Salon World Ltd", contact: "0733 445 990", products: "Gel, Shampoo, Sanitizer", outstanding: 12800, lastPayment: "2026-07-18" },
-  { id: "SUP3", name: "ColourPro Kenya", contact: "0700 667 812", products: "Dye, Wax", outstanding: 0, lastPayment: "2026-07-22" },
-  { id: "SUP4", name: "Textile Direct", contact: "0711 223 456", products: "Towels, Capes", outstanding: 2200, lastPayment: "2026-07-05" },
-];
-const EXPENSES = [
-  { id: "E1", date: "2026-07-25", category: "Rent", desc: "Shop rent - July", amount: 45000, approvedBy: "Manager" },
-  { id: "E2", date: "2026-07-24", category: "Electricity", desc: "KPLC bill", amount: 6200, approvedBy: "Manager" },
-  { id: "E3", date: "2026-07-23", category: "Supplies", desc: "Blade restock", amount: 3600, approvedBy: "Owner" },
-  { id: "E4", date: "2026-07-22", category: "Cleaning", desc: "Cleaning service", amount: 1500, approvedBy: "Manager" },
-  { id: "E5", date: "2026-07-21", category: "Advertising", desc: "Instagram promo", amount: 2000, approvedBy: "Owner" },
-  { id: "E6", date: "2026-07-20", category: "Water", desc: "Water bill", amount: 1800, approvedBy: "Manager" },
-  { id: "E7", date: "2026-07-19", category: "Repairs", desc: "Chair repair", amount: 4200, approvedBy: "Owner" },
-];
-const AUDIT = [
-  { id: "L1", time: "2026-07-25 13:44", user: "Ann Wanjiru", action: "Voided receipt R-1029", severity: "High" },
-  { id: "L2", time: "2026-07-25 12:56", user: "Manager - Grace", action: "Approved price change: VIP Full Package", severity: "Medium" },
-  { id: "L3", time: "2026-07-25 11:02", user: "Brenda Achola", action: "Logged in", severity: "Low" },
-  { id: "L4", time: "2026-07-24 18:05", user: "Manager - Grace", action: "End-of-day reconciliation approved, variance -KSh 50", severity: "Medium" },
-  { id: "L5", time: "2026-07-24 16:10", user: "Ann Wanjiru", action: "Issued refund on R-1020", severity: "High" },
-  { id: "L6", time: "2026-07-24 09:15", user: "Owner", action: "Edited inventory: Sanitizer 1L stock adjusted", severity: "Medium" },
-  { id: "L7", time: "2026-07-23 20:41", user: "Brenda Achola", action: "Logged out", severity: "Low" },
-];
-const REVENUE_TREND = [
-  { day: "Mon", value: 38200 }, { day: "Tue", value: 41500 }, { day: "Wed", value: 35800 },
-  { day: "Thu", value: 47200 }, { day: "Fri", value: 58900 }, { day: "Sat", value: 71400 }, { day: "Sun", value: 52600 },
-];
+const COLLECTIONS = ["barbers", "services", "customers", "inventory", "suppliers", "expenses", "appointments", "sales"];
+const DATA = { barbers: [], services: [], customers: [], inventory: [], suppliers: [], expenses: [], appointments: [], sales: [], audit: [] };
+let dataUnsubs = [];
+
+function subscribeAllData() {
+  unsubscribeAllData();
+  COLLECTIONS.forEach((name) => {
+    const unsub = onSnapshot(collection(db, name), (snap) => {
+      DATA[name] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      softRerender();
+    }, (err) => console.error(`[${name}]`, err));
+    dataUnsubs.push(unsub);
+  });
+  const auditUnsub = onSnapshot(query(collection(db, "audit"), orderBy("ms", "desc")), (snap) => {
+    DATA.audit = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    softRerender();
+  }, (err) => console.error("[audit]", err));
+  dataUnsubs.push(auditUnsub);
+}
+function unsubscribeAllData() {
+  dataUnsubs.forEach((u) => u());
+  dataUnsubs = [];
+}
+// Re-render the current page in place whenever live data changes, but never
+// steal focus from a search box the user is typing in, and never re-render
+// while a modal is open (so an in-progress Add/Edit form isn't wiped out).
+function softRerender() {
+  const shell = document.getElementById("app-shell");
+  if (!shell || shell.classList.contains("hidden")) return;
+  if (document.getElementById("modal-overlay")) return;
+  const active = document.activeElement;
+  if (active && active.closest && active.closest("#page-wrap") &&
+      ["INPUT", "SELECT", "TEXTAREA"].includes(active.tagName)) return;
+  const renderFn = PAGE_RENDER[currentPage] || renderDashboard;
+  renderFn(document.getElementById("page-wrap"));
+}
+
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+async function logAudit(action, severity = "Low") {
+  try {
+    await addDoc(collection(db, "audit"), {
+      action, severity, ms: Date.now(),
+      user: currentProfile ? `${currentProfile.role} - ${currentProfile.name}` : "Unknown",
+      createdAt: serverTimestamp(),
+    });
+  } catch (err) { console.error("audit log failed", err); }
+}
+function fmtAuditTime(r) {
+  if (r.createdAt && typeof r.createdAt.toDate === "function") {
+    return r.createdAt.toDate().toLocaleString("en-KE", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  }
+  return r.ms ? new Date(r.ms).toLocaleString("en-KE", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "just now";
+}
+
+/* ============================================================
+   GENERIC FORM / MODAL / ROW-ACTION HELPERS
+   (used by every real CRUD module below)
+   ============================================================ */
+function formFieldsHtml(fields, data) {
+  data = data || {};
+  return fields.map((f) => {
+    const val = data[f.key] ?? f.default ?? "";
+    if (f.type === "select") {
+      return `<div class="field"><label>${escapeHtml(f.label)}</label><select id="f-${f.key}">
+          ${f.options.map((o) => `<option value="${escapeHtml(o)}" ${String(val) === String(o) ? "selected" : ""}>${escapeHtml(o)}</option>`).join("")}
+        </select></div>`;
+    }
+    return `<div class="field"><label>${escapeHtml(f.label)}</label>
+        <input id="f-${f.key}" type="${f.type || "text"}" ${f.step ? `step="${f.step}"` : ""} value="${escapeHtml(val)}" placeholder="${escapeHtml(f.placeholder || "")}" /></div>`;
+  }).join("");
+}
+function readFormFields(fields) {
+  const out = {};
+  fields.forEach((f) => {
+    const el = document.getElementById(`f-${f.key}`);
+    let v = el.value;
+    if (f.type === "number") v = parseFloat(v) || 0;
+    out[f.key] = v;
+  });
+  return out;
+}
+function openEntityModal(cfg) {
+  openModal(`
+    <div class="modal-head"><h3 class="modal-title">${escapeHtml(cfg.title)}</h3><button class="modal-close" id="em-close">✕</button></div>
+    ${formFieldsHtml(cfg.fields, cfg.data)}
+    <div id="em-error"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="em-cancel">Cancel</button><button class="btn btn-primary" id="em-save">${escapeHtml(cfg.saveLabel || "Save")}</button></div>
+  `);
+  document.getElementById("em-close").onclick = closeModal;
+  document.getElementById("em-cancel").onclick = closeModal;
+  document.getElementById("em-save").onclick = async () => {
+    const btn = document.getElementById("em-save");
+    const errEl = document.getElementById("em-error");
+    errEl.innerHTML = "";
+    const values = readFormFields(cfg.fields);
+    const missing = cfg.fields.filter((f) => f.required && !String(values[f.key]).trim());
+    if (missing.length) { errEl.innerHTML = `<div class="auth-error">Fill in: ${missing.map((f) => escapeHtml(f.label)).join(", ")}</div>`; return; }
+    btn.disabled = true; btn.textContent = "Saving...";
+    try { await cfg.onSave(values); closeModal(); }
+    catch (err) {
+      errEl.innerHTML = `<div class="auth-error">${escapeHtml(err.message || "Something went wrong.")}</div>`;
+      btn.disabled = false; btn.textContent = cfg.saveLabel || "Save";
+    }
+  };
+}
+// A small "Actions ▾" dropdown used for Edit/Delete (and similar) on every row.
+function actionsDropdown(rowId, actions) {
+  if (!actions.length) return "";
+  return `<div class="dropdown" data-row-id="${rowId}">
+      <button class="btn btn-sm btn-ghost" data-act="__toggle">Actions ▾</button>
+      <div class="dropdown-menu hidden">
+        ${actions.map((a) => `<button class="dropdown-item ${a.danger ? "danger" : ""}" data-act="${a.act}">${escapeHtml(a.label)}</button>`).join("")}
+      </div>
+    </div>`;
+}
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".dropdown")) document.querySelectorAll(".dropdown-menu").forEach((m) => m.classList.add("hidden"));
+});
+function wireActionsDropdown(container, handlers) {
+  container.addEventListener("click", async (e) => {
+    const toggle = e.target.closest('[data-act="__toggle"]');
+    if (toggle) {
+      const menu = toggle.nextElementSibling;
+      document.querySelectorAll(".dropdown-menu").forEach((m) => { if (m !== menu) m.classList.add("hidden"); });
+      menu.classList.toggle("hidden");
+      return;
+    }
+    const btn = e.target.closest("button[data-act]");
+    if (!btn || btn.dataset.act === "__toggle") return;
+    const rowId = btn.closest("[data-row-id]")?.dataset.rowId;
+    const handler = handlers[btn.dataset.act];
+    if (handler && rowId) {
+      document.querySelectorAll(".dropdown-menu").forEach((m) => m.classList.add("hidden"));
+      await handler(rowId);
+    }
+  });
+}
+// Generic Firestore-backed list page: renders a table with Add (top button)
+// and Edit / Delete (per-row dropdown), all wired straight to `collectionName`.
+function renderCrudPage(root, cfg) {
+  root.innerHTML = `${sectionHeader(cfg.eyebrow, cfg.title, addBtn(cfg.addLabel, "crud-add"))}${cfg.extraTop || ""}<div id="crud-table"></div>`;
+  document.getElementById("crud-add").onclick = () => openEntityModal({
+    title: `Add ${cfg.singular}`, fields: cfg.fields, data: {},
+    onSave: async (values) => {
+      await addDoc(collection(db, cfg.collectionName), values);
+      await logAudit(`Added ${cfg.singular.toLowerCase()}: ${values[cfg.fields[0].key]}`, "Low");
+      toast(`${cfg.singular} added.`, "good");
+    },
+  });
+  mountDataTable(document.getElementById("crud-table"), {
+    columns: cfg.columns,
+    rows: () => DATA[cfg.collectionName],
+    searchKeys: cfg.searchKeys, filters: cfg.filters || [], defaultSort: cfg.defaultSort,
+    rowActions: (r) => actionsDropdown(r.id, [{ label: "Edit", act: "edit" }, { label: "Delete", act: "delete", danger: true }]),
+    onMount: (container) => wireActionsDropdown(container, {
+      edit: (rowId) => {
+        const row = DATA[cfg.collectionName].find((x) => x.id === rowId);
+        if (!row) return;
+        openEntityModal({
+          title: `Edit ${cfg.singular}`, fields: cfg.fields, data: row, saveLabel: "Save changes",
+          onSave: async (values) => {
+            await updateDoc(doc(db, cfg.collectionName, rowId), values);
+            await logAudit(`Edited ${cfg.singular.toLowerCase()}: ${values[cfg.fields[0].key]}`, "Medium");
+            toast("Changes saved.", "good");
+          },
+        });
+      },
+      delete: async (rowId) => {
+        const row = DATA[cfg.collectionName].find((x) => x.id === rowId);
+        if (!confirm(`Delete this ${cfg.singular.toLowerCase()}? This cannot be undone.`)) return;
+        await deleteDoc(doc(db, cfg.collectionName, rowId));
+        await logAudit(`Deleted ${cfg.singular.toLowerCase()}: ${row ? row[cfg.fields[0].key] : rowId}`, "High");
+        toast(`${cfg.singular} deleted.`, "good");
+      },
+    }),
+  });
+}
 
 /* ============================================================
    GENERIC DATA TABLE  (search + filter + sort, used everywhere)
@@ -562,68 +657,161 @@ function sectionHeader(eyebrow, title, actionHtml) {
 }
 function addBtn(label, id) { return `<button class="btn btn-primary" id="${id}">${ICONS.plus}${escapeHtml(label)}</button>`; }
 
+function computeInvStatus(item) {
+  const stock = item.stock || 0, reorder = item.reorder || 0;
+  if (stock <= 0 || stock <= reorder * 0.5) return "Critical";
+  if (stock <= reorder) return "Low";
+  return "OK";
+}
+
 function renderDashboard(root) {
-  const todayRevenue = SALES.filter((s) => s.date === "2026-07-25").reduce((a, s) => a + s.amount, 0);
-  const lowStock = INVENTORY.filter((i) => i.status !== "OK");
-  const maxRev = Math.max(...REVENUE_TREND.map((r) => r.value));
+  const salesLive = DATA.sales.filter((s) => !s.voided);
+  const today = todayStr();
+  const todaySales = salesLive.filter((s) => s.date === today);
+  const todayRevenue = todaySales.reduce((a, s) => a + (s.amount || 0), 0);
+  const todayAppts = DATA.appointments.filter((a) => a.date === today);
+  const walkins = todayAppts.filter((a) => a.type === "Walk-in").length;
+  const lowStock = DATA.inventory.filter((i) => computeInvStatus(i) !== "OK");
+
+  const monthPrefix = today.slice(0, 7);
+  const revByBarber = new Map();
+  salesLive.filter((s) => (s.date || "").startsWith(monthPrefix)).forEach((s) => revByBarber.set(s.barber, (revByBarber.get(s.barber) || 0) + (s.amount || 0)));
+  let topBarber = "—", topBarberRev = 0;
+  revByBarber.forEach((v, k) => { if (v > topBarberRev) { topBarberRev = v; topBarber = k; } });
+
+  const dateSet = [...new Set(salesLive.map((s) => s.date).filter(Boolean))].sort().slice(-7);
+  const trend = dateSet.map((d) => ({
+    day: new Date(d + "T00:00:00").toLocaleDateString("en-KE", { weekday: "short" }),
+    value: salesLive.filter((s) => s.date === d).reduce((a, s) => a + (s.amount || 0), 0),
+  }));
+  const maxRev = Math.max(1, ...trend.map((r) => r.value));
+
   root.innerHTML = `
-    ${sectionHeader("Today · 25 Jul 2026", "Dashboard")}
+    ${sectionHeader(new Date().toLocaleDateString("en-KE", { weekday: "long", day: "2-digit", month: "short", year: "numeric" }), "Dashboard")}
     <div class="stat-grid">
-      <div class="card stat-card"><div class="stat-top"><span class="stat-label">Revenue Today</span></div><div class="stat-value">${money(todayRevenue)}</div><div class="stat-sub">5 receipts so far</div></div>
-      <div class="card stat-card"><div class="stat-top"><span class="stat-label">Appointments Today</span></div><div class="stat-value">${APPOINTMENTS.length}</div><div class="stat-sub">3 walk-ins</div></div>
-      <div class="card stat-card"><div class="stat-top"><span class="stat-label">Top Barber</span></div><div class="stat-value">Otieno M.</div><div class="stat-sub">KSh 186,400 this month</div></div>
+      <div class="card stat-card"><div class="stat-top"><span class="stat-label">Revenue Today</span></div><div class="stat-value">${money(todayRevenue)}</div><div class="stat-sub">${todaySales.length} receipt${todaySales.length === 1 ? "" : "s"} so far</div></div>
+      <div class="card stat-card"><div class="stat-top"><span class="stat-label">Appointments Today</span></div><div class="stat-value">${todayAppts.length}</div><div class="stat-sub">${walkins} walk-in${walkins === 1 ? "" : "s"}</div></div>
+      <div class="card stat-card"><div class="stat-top"><span class="stat-label">Top Barber (mo.)</span></div><div class="stat-value">${escapeHtml(topBarber)}</div><div class="stat-sub">${money(topBarberRev)} this month</div></div>
       <div class="card stat-card"><div class="stat-top"><span class="stat-label">Low Stock Items</span></div><div class="stat-value">${lowStock.length}</div><div class="stat-sub">Needs reorder</div></div>
     </div>
     <div class="dash-grid">
       <div class="card chart-card">
-        <div class="chart-head"><span class="chart-title">Revenue this week</span><span class="chart-trend">▲ +12.4%</span></div>
-        <div class="bars">
-          ${REVENUE_TREND.map((r) => `<div class="bar-col"><div class="bar-val">${Math.round(r.value / 1000)}k</div>
-            <div class="bar ${r.day === "Sat" ? "peak" : ""}" style="height:${(r.value / maxRev) * 100}px;"></div>
-            <div class="bar-day">${r.day}</div></div>`).join("")}
-        </div>
+        <div class="chart-head"><span class="chart-title">Revenue, recent days</span></div>
+        ${trend.length ? `<div class="bars">
+            ${trend.map((r) => `<div class="bar-col"><div class="bar-val">${Math.round(r.value / 1000)}k</div>
+              <div class="bar ${r.value === maxRev ? "peak" : ""}" style="height:${Math.max(4, (r.value / maxRev) * 100)}px;"></div>
+              <div class="bar-day">${r.day}</div></div>`).join("")}
+          </div>` : `<div style="font-size:12.5px;color:var(--text-dim);">No sales recorded yet — charge your first sale in Point of Sale.</div>`}
       </div>
       <div class="card stock-card">
         <span class="chart-title">Stock alerts</span>
         <div style="margin-top:12px;">
-          ${lowStock.map((i) => `<div class="stock-row"><div><div class="stock-name">${escapeHtml(i.name)}</div><div class="stock-meta">${i.stock} left · reorder at ${i.reorder}</div></div>${pill(i.status)}</div>`).join("")}
+          ${lowStock.length ? lowStock.map((i) => `<div class="stock-row"><div><div class="stock-name">${escapeHtml(i.name)}</div><div class="stock-meta">${i.stock || 0} left · reorder at ${i.reorder || 0}</div></div>${pill(computeInvStatus(i))}</div>`).join("") : `<div style="font-size:12.5px;color:var(--text-dim);">Everything is well stocked.</div>`}
         </div>
       </div>
     </div>`;
 }
 
+const APPT_STATUSES = ["Confirmed", "In Progress", "Completed", "No-show", "Cancelled"];
+function appointmentFields(barberNames, serviceNames) {
+  return [
+    { key: "date", label: "Date", type: "date", required: true, default: todayStr() },
+    { key: "time", label: "Time", type: "time", required: true },
+    { key: "customer", label: "Customer", required: true, placeholder: "Walk-in" },
+    { key: "barber", label: "Barber", type: "select", options: barberNames.length ? barberNames : ["—"] },
+    { key: "service", label: "Service", type: "select", options: serviceNames.length ? serviceNames : ["—"] },
+    { key: "type", label: "Type", type: "select", options: ["Booking", "Walk-in"] },
+    { key: "status", label: "Status", type: "select", options: APPT_STATUSES },
+  ];
+}
 function renderAppointments(root) {
+  const barberNames = DATA.barbers.map((b) => b.name);
+  const serviceNames = DATA.services.map((s) => s.name);
   root.innerHTML = `${sectionHeader("Bookings & walk-ins", "Appointments", addBtn("New appointment", "add-appt"))}<div id="appt-table"></div>`;
-  document.getElementById("add-appt").onclick = () => toast("Appointment booking form goes here — hook to your Firestore 'appointments' collection.");
+  document.getElementById("add-appt").onclick = () => openEntityModal({
+    title: "New appointment", fields: appointmentFields(barberNames, serviceNames), data: {},
+    onSave: async (values) => {
+      await addDoc(collection(db, "appointments"), values);
+      await logAudit(`Booked appointment for ${values.customer} with ${values.barber}`, "Low");
+      toast("Appointment added.", "good");
+    },
+  });
   mountDataTable(document.getElementById("appt-table"), {
     columns: [
-      { key: "time", label: "Time", mono: true },
+      { key: "date", label: "Date", mono: true }, { key: "time", label: "Time", mono: true },
       { key: "customer", label: "Customer" }, { key: "barber", label: "Barber" }, { key: "service", label: "Service" },
-      { key: "type", label: "Type" }, { key: "status", label: "Status", render: (r) => pill(r.status) },
+      { key: "type", label: "Type" },
+      { key: "status", label: "Status", render: (r) => `
+        <select class="inline-select status-select" data-row-id="${r.id}">
+          ${APPT_STATUSES.map((s) => `<option value="${s}" ${s === r.status ? "selected" : ""}>${s}</option>`).join("")}
+        </select>` },
     ],
-    rows: APPOINTMENTS, searchKeys: ["customer", "barber", "service"],
+    rows: () => DATA.appointments, searchKeys: ["customer", "barber", "service"],
     filters: [
-      { key: "status", label: "Status", options: ["Confirmed", "In Progress", "Completed", "No-show", "Cancelled"] },
-      { key: "barber", label: "Barber", options: [...new Set(APPOINTMENTS.map((a) => a.barber))] },
+      { key: "status", label: "Status", options: APPT_STATUSES },
+      { key: "barber", label: "Barber", options: [...new Set(DATA.appointments.map((a) => a.barber).filter(Boolean))] },
       { key: "type", label: "Type", options: ["Booking", "Walk-in"] },
     ],
     defaultSort: { key: "time", dir: "asc" },
+    rowActions: (r) => actionsDropdown(r.id, [{ label: "Edit", act: "edit" }, { label: "Delete", act: "delete", danger: true }]),
+    onMount: (container) => {
+      container.addEventListener("change", async (e) => {
+        const sel = e.target.closest(".status-select");
+        if (!sel) return;
+        await updateDoc(doc(db, "appointments", sel.dataset.rowId), { status: sel.value });
+        await logAudit(`Updated appointment status to ${sel.value}`, "Low");
+        toast("Status updated.", "good");
+      });
+      wireActionsDropdown(container, {
+        edit: (rowId) => {
+          const row = DATA.appointments.find((x) => x.id === rowId);
+          if (!row) return;
+          openEntityModal({
+            title: "Edit appointment", fields: appointmentFields(barberNames, serviceNames), data: row, saveLabel: "Save changes",
+            onSave: async (values) => {
+              await updateDoc(doc(db, "appointments", rowId), values);
+              await logAudit(`Edited appointment for ${values.customer}`, "Medium");
+              toast("Appointment updated.", "good");
+            },
+          });
+        },
+        delete: async (rowId) => {
+          if (!confirm("Delete this appointment?")) return;
+          await deleteDoc(doc(db, "appointments", rowId));
+          await logAudit("Deleted an appointment", "High");
+          toast("Appointment deleted.", "good");
+        },
+      });
+    },
   });
 }
 
 function renderPOS(root) {
+  const activeServices = DATA.services.filter((s) => s.status !== "Inactive");
+  const barberNames = DATA.barbers.map((b) => b.name);
   root.innerHTML = `
     ${sectionHeader("Point of sale", "Sales & checkout")}
     <div class="pos-grid">
       <div class="card pos-services">
         <span class="chart-title">New sale</span>
         <div class="service-grid" id="service-tiles">
-          ${SERVICES.filter((s) => s.status === "Active").slice(0, 8).map((s) => `<button class="service-tile" data-id="${s.id}"><div class="n">${escapeHtml(s.name)}</div><div class="p">${money(s.price)}</div></button>`).join("")}
+          ${activeServices.length ? activeServices.map((s) => `<button class="service-tile" data-id="${s.id}"><div class="n">${escapeHtml(s.name)}</div><div class="p">${money(s.price)}</div></button>`).join("")
+            : `<div style="grid-column:1/-1;font-size:12.5px;color:var(--text-dim);">No services yet — add some in the Services page.</div>`}
         </div>
       </div>
       <div class="ticket">
         <div class="ticket-stripe"></div>
         <span class="chart-title" style="color:#fff;">Current ticket</span>
+        <div class="field" style="margin-top:12px;"><label style="color:#9A9CA6;">Customer</label>
+          <input id="pos-customer" placeholder="Walk-in" style="width:100%;padding:8px 10px;border-radius:7px;border:none;font-size:13px;box-sizing:border-box;" /></div>
+        <div class="field"><label style="color:#9A9CA6;">Barber</label>
+          <select id="pos-barber" style="width:100%;padding:8px 10px;border-radius:7px;border:none;font-size:13px;">
+            ${barberNames.length ? barberNames.map((n) => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("") : `<option value="">—</option>`}
+          </select></div>
+        <div class="field"><label style="color:#9A9CA6;">Payment method</label>
+          <select id="pos-method" style="width:100%;padding:8px 10px;border-radius:7px;border:none;font-size:13px;">
+            <option>Cash</option><option>M-Pesa</option><option>Card</option><option>Mixed</option>
+          </select></div>
         <div class="ticket-lines" id="ticket-lines"><div class="ticket-empty">Tap a service to add it to the ticket.</div></div>
         <div class="ticket-total"><span>Total</span><span id="ticket-total">KSh 0</span></div>
         <button class="charge-btn" id="charge-btn">Charge KSh 0</button>
@@ -639,166 +827,275 @@ function renderPOS(root) {
   function renderCart() {
     const total = cart.reduce((a, c) => a + c.price, 0);
     linesEl.innerHTML = cart.length === 0 ? `<div class="ticket-empty">Tap a service to add it to the ticket.</div>`
-      : cart.map((c) => `<div class="ticket-line"><span>${escapeHtml(c.name)}</span><span>${money(c.price)}</span></div>`).join("");
+      : cart.map((c, i) => `<div class="ticket-line"><span>${escapeHtml(c.name)}</span><span>${money(c.price)} <button data-i="${i}" class="pos-remove" style="background:none;border:none;color:#9A9CA6;">✕</button></span></div>`).join("");
     totalEl.textContent = money(total);
     chargeBtn.textContent = `Charge ${money(total)}`;
+    linesEl.querySelectorAll(".pos-remove").forEach((b) => b.addEventListener("click", () => { cart.splice(+b.dataset.i, 1); renderCart(); }));
   }
   document.querySelectorAll(".service-tile").forEach((btn) => {
-    btn.addEventListener("click", () => { cart.push(SERVICES.find((s) => s.id === btn.dataset.id)); renderCart(); });
+    btn.addEventListener("click", () => { const s = DATA.services.find((x) => x.id === btn.dataset.id); if (s) cart.push(s); renderCart(); });
   });
-  chargeBtn.addEventListener("click", () => {
+  chargeBtn.addEventListener("click", async () => {
     if (cart.length === 0) return;
-    toast(`Charged ${money(cart.reduce((a, c) => a + c.price, 0))} — wire this to Firestore to save a real receipt.`, "good");
-    cart = []; renderCart();
+    const total = cart.reduce((a, c) => a + c.price, 0);
+    const customer = document.getElementById("pos-customer").value.trim() || "Walk-in";
+    const barber = document.getElementById("pos-barber").value || "—";
+    const method = document.getElementById("pos-method").value;
+    const now = new Date();
+    chargeBtn.disabled = true; chargeBtn.textContent = "Charging...";
+    try {
+      await addDoc(collection(db, "sales"), {
+        date: now.toISOString().slice(0, 10), time: now.toTimeString().slice(0, 5),
+        customer, barber, method,
+        items: cart.map((c) => ({ name: c.name, price: c.price })),
+        itemsLabel: cart.map((c) => c.name).join(", "),
+        amount: total, cashier: currentProfile ? currentProfile.name : "—",
+        createdAt: serverTimestamp(), ms: Date.now(), voided: false,
+      });
+      await logAudit(`Charged ${money(total)} to ${customer}`, "Medium");
+      toast(`Charged ${money(total)}.`, "good");
+      cart = []; renderCart();
+    } catch (err) {
+      toast("Couldn't save the sale: " + (err.message || "unknown error"), "bad");
+    } finally { chargeBtn.disabled = false; }
   });
+  renderCart();
 
   mountDataTable(document.getElementById("sales-table"), {
     columns: [
-      { key: "id", label: "Receipt", mono: true }, { key: "date", label: "Date", mono: true }, { key: "time", label: "Time", mono: true },
-      { key: "customer", label: "Customer" }, { key: "barber", label: "Barber" }, { key: "items", label: "Items" },
+      { key: "id", label: "Receipt", mono: true, render: (r) => r.id.slice(0, 8).toUpperCase() },
+      { key: "date", label: "Date", mono: true }, { key: "time", label: "Time", mono: true },
+      { key: "customer", label: "Customer" }, { key: "barber", label: "Barber" }, { key: "itemsLabel", label: "Items" },
       { key: "method", label: "Payment", render: (r) => pill(r.method, { Cash: "neutral", "M-Pesa": "info", Card: "info", Mixed: "warn" }) },
-      { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) },
+      { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => (r.voided ? `<s>${money(r.amount)}</s>` : money(r.amount)) },
     ],
-    rows: SALES, searchKeys: ["id", "customer", "barber", "items"],
+    rows: () => DATA.sales, searchKeys: ["customer", "barber", "itemsLabel"],
     filters: [
       { key: "method", label: "Payment", options: ["Cash", "M-Pesa", "Card", "Mixed"] },
-      { key: "barber", label: "Barber", options: [...new Set(SALES.map((s) => s.barber))] },
-      { key: "date", label: "Date", options: [...new Set(SALES.map((s) => s.date))] },
+      { key: "barber", label: "Barber", options: [...new Set(DATA.sales.map((s) => s.barber).filter(Boolean))] },
     ],
-    defaultSort: { key: "id", dir: "desc" },
+    defaultSort: { key: "ms", dir: "desc" },
+    rowActions: (r) => (r.voided ? `<span class="pill pill-neutral">Voided</span>` : actionsDropdown(r.id, [{ label: "Void receipt", act: "void", danger: true }])),
+    onMount: (container) => wireActionsDropdown(container, {
+      void: async (rowId) => {
+        if (!confirm("Void this receipt? It will be excluded from revenue totals.")) return;
+        await updateDoc(doc(db, "sales", rowId), { voided: true });
+        await logAudit(`Voided receipt ${rowId.slice(0, 8).toUpperCase()}`, "High");
+        toast("Receipt voided.", "good");
+      },
+    }),
   });
 }
 
+function customerStats(name) {
+  const rows = DATA.sales.filter((s) => s.customer === name && !s.voided);
+  const spend = rows.reduce((a, s) => a + (s.amount || 0), 0);
+  const lastVisit = rows.map((s) => s.date).filter(Boolean).sort().slice(-1)[0] || "—";
+  return { spend, visits: rows.length, lastVisit };
+}
 function renderCustomers(root) {
-  root.innerHTML = `${sectionHeader("Client book", "Customers", addBtn("New customer", "add-cust"))}<div id="cust-table"></div>`;
-  document.getElementById("add-cust").onclick = () => toast("Customer form goes here — hook to your Firestore 'customers' collection.");
-  mountDataTable(document.getElementById("cust-table"), {
+  const barberNames = DATA.barbers.map((b) => b.name);
+  renderCrudPage(root, {
+    eyebrow: "Client book", title: "Customers", singular: "Customer", addLabel: "New customer",
+    collectionName: "customers",
+    fields: [
+      { key: "name", label: "Full name", required: true },
+      { key: "phone", label: "Phone" },
+      { key: "preferredBarber", label: "Preferred barber", type: "select", options: ["—", ...barberNames] },
+      { key: "membership", label: "Membership", type: "select", options: ["New", "Standard", "VIP"] },
+    ],
     columns: [
       { key: "name", label: "Customer" }, { key: "phone", label: "Phone", mono: true },
       { key: "membership", label: "Membership", render: (r) => pill(r.membership) },
-      { key: "preferredBarber", label: "Preferred barber" }, { key: "visits", label: "Visits", align: "right" },
-      { key: "spend", label: "Lifetime spend", mono: true, align: "right", render: (r) => money(r.spend) },
-      { key: "lastVisit", label: "Last visit", mono: true },
+      { key: "preferredBarber", label: "Preferred barber" },
+      { key: "visits", label: "Visits", align: "right", render: (r) => customerStats(r.name).visits },
+      { key: "spend", label: "Lifetime spend", mono: true, align: "right", render: (r) => money(customerStats(r.name).spend) },
+      { key: "lastVisit", label: "Last visit", mono: true, render: (r) => customerStats(r.name).lastVisit },
     ],
-    rows: CUSTOMERS, searchKeys: ["name", "phone"],
-    filters: [
-      { key: "membership", label: "Membership", options: ["VIP", "Standard", "New"] },
-      { key: "preferredBarber", label: "Barber", options: [...new Set(CUSTOMERS.map((c) => c.preferredBarber))] },
-    ],
-    defaultSort: { key: "spend", dir: "desc" },
+    searchKeys: ["name", "phone"],
+    filters: [{ key: "membership", label: "Membership", options: ["VIP", "Standard", "New"] }],
+    defaultSort: { key: "name", dir: "asc" },
   });
 }
 
+function barberStats(name) {
+  const rows = DATA.sales.filter((s) => s.barber === name && !s.voided);
+  const revenue = rows.reduce((a, s) => a + (s.amount || 0), 0);
+  const customers = new Set(rows.map((s) => s.customer)).size;
+  return { revenue, customers };
+}
 function renderBarbers(root) {
-  root.innerHTML = `${sectionHeader("Team performance", "Barbers", addBtn("Add barber", "add-barber"))}<div id="barber-table"></div>`;
-  document.getElementById("add-barber").onclick = () => toast("For staff logins, use Staff Management — this list is for the performance profile only.");
-  mountDataTable(document.getElementById("barber-table"), {
+  renderCrudPage(root, {
+    eyebrow: "Team performance", title: "Barbers", singular: "Barber", addLabel: "Add barber",
+    collectionName: "barbers",
+    fields: [
+      { key: "name", label: "Full name", required: true },
+      { key: "specialty", label: "Specialty" },
+      { key: "phone", label: "Phone" },
+      { key: "status", label: "Status", type: "select", options: ["Active", "On Leave"] },
+      { key: "commissionRate", label: "Commission %", type: "number", step: "1", default: 30 },
+      { key: "baseSalary", label: "Base salary (KSh)", type: "number", step: "1", default: 15000 },
+      { key: "deductions", label: "Monthly deductions (KSh)", type: "number", step: "1", default: 0 },
+    ],
     columns: [
       { key: "name", label: "Barber" }, { key: "specialty", label: "Specialty" },
-      { key: "status", label: "Status", render: (r) => pill(r.status) }, { key: "customers", label: "Customers", align: "right" },
-      { key: "revenue", label: "Revenue (mo.)", mono: true, align: "right", render: (r) => money(r.revenue) },
-      { key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission) },
-      { key: "tips", label: "Tips", mono: true, align: "right", render: (r) => money(r.tips) },
-      { key: "rating", label: "Rating", align: "right", render: (r) => `★ ${r.rating}` },
-      { key: "attendance", label: "Attendance", align: "right" },
+      { key: "status", label: "Status", render: (r) => pill(r.status) },
+      { key: "phone", label: "Phone", mono: true },
+      { key: "commissionRate", label: "Commission", align: "right", render: (r) => `${r.commissionRate || 0}%` },
+      { key: "revenue", label: "Revenue", mono: true, align: "right", render: (r) => money(barberStats(r.name).revenue) },
+      { key: "customers", label: "Customers", align: "right", render: (r) => barberStats(r.name).customers },
     ],
-    rows: BARBERS, searchKeys: ["name", "specialty"],
+    searchKeys: ["name", "specialty"],
     filters: [{ key: "status", label: "Status", options: ["Active", "On Leave"] }],
-    defaultSort: { key: "revenue", dir: "desc" },
+    defaultSort: { key: "name", dir: "asc" },
   });
 }
 
 function renderServices(root) {
-  root.innerHTML = `${sectionHeader("Price list", "Services", addBtn("New service", "add-service"))}<div id="service-table"></div>`;
-  document.getElementById("add-service").onclick = () => toast("Service form goes here — hook to your Firestore 'services' collection.");
-  mountDataTable(document.getElementById("service-table"), {
+  renderCrudPage(root, {
+    eyebrow: "Price list", title: "Services", singular: "Service", addLabel: "New service",
+    collectionName: "services",
+    fields: [
+      { key: "name", label: "Service name", required: true },
+      { key: "category", label: "Category" },
+      { key: "price", label: "Price (KSh)", type: "number", step: "1" },
+      { key: "duration", label: "Duration (min)", type: "number", step: "1" },
+      { key: "commissionRate", label: "Commission %", type: "number", step: "1", default: 30 },
+      { key: "status", label: "Status", type: "select", options: ["Active", "Inactive"] },
+    ],
     columns: [
       { key: "name", label: "Service" }, { key: "category", label: "Category" },
       { key: "price", label: "Price", mono: true, align: "right", render: (r) => money(r.price) },
-      { key: "duration", label: "Duration", mono: true, align: "right", render: (r) => `${r.duration} min` },
-      { key: "commission", label: "Commission", align: "right" }, { key: "status", label: "Status", render: (r) => pill(r.status) },
+      { key: "duration", label: "Duration", mono: true, align: "right", render: (r) => `${r.duration || 0} min` },
+      { key: "commissionRate", label: "Commission", align: "right", render: (r) => `${r.commissionRate || 0}%` },
+      { key: "status", label: "Status", render: (r) => pill(r.status) },
     ],
-    rows: SERVICES, searchKeys: ["name", "category"],
+    searchKeys: ["name", "category"],
     filters: [
-      { key: "category", label: "Category", options: [...new Set(SERVICES.map((s) => s.category))] },
+      { key: "category", label: "Category", options: [...new Set(DATA.services.map((s) => s.category).filter(Boolean))] },
       { key: "status", label: "Status", options: ["Active", "Inactive"] },
     ],
-    defaultSort: { key: "price", dir: "desc" },
+    defaultSort: { key: "name", dir: "asc" },
   });
 }
 
 function renderInventory(root) {
-  root.innerHTML = `${sectionHeader("Stock control", "Inventory", addBtn("Receive stock", "add-stock"))}<div id="inv-table"></div>`;
-  document.getElementById("add-stock").onclick = () => toast("Stock receipt form goes here — hook to your Firestore 'inventory' collection.");
-  mountDataTable(document.getElementById("inv-table"), {
+  const supplierNames = DATA.suppliers.map((s) => s.name);
+  renderCrudPage(root, {
+    eyebrow: "Stock control", title: "Inventory", singular: "Item", addLabel: "Receive stock",
+    collectionName: "inventory",
+    fields: [
+      { key: "name", label: "Item name", required: true },
+      { key: "category", label: "Category" },
+      { key: "stock", label: "In stock", type: "number", step: "1" },
+      { key: "reorder", label: "Reorder at", type: "number", step: "1" },
+      { key: "unitCost", label: "Unit cost (KSh)", type: "number", step: "1" },
+      { key: "supplier", label: "Supplier", type: "select", options: ["—", ...supplierNames] },
+    ],
     columns: [
-      { key: "name", label: "Item" }, { key: "category", label: "Category" }, { key: "stock", label: "In stock", align: "right" },
-      { key: "reorder", label: "Reorder at", align: "right" },
+      { key: "name", label: "Item" }, { key: "category", label: "Category" },
+      { key: "stock", label: "In stock", align: "right" }, { key: "reorder", label: "Reorder at", align: "right" },
       { key: "unitCost", label: "Unit cost", mono: true, align: "right", render: (r) => money(r.unitCost) },
-      { key: "supplier", label: "Supplier" }, { key: "status", label: "Status", render: (r) => pill(r.status) },
+      { key: "supplier", label: "Supplier" },
+      { key: "status", label: "Status", render: (r) => pill(computeInvStatus(r)) },
     ],
-    rows: INVENTORY, searchKeys: ["name", "supplier"],
-    filters: [
-      { key: "category", label: "Category", options: [...new Set(INVENTORY.map((i) => i.category))] },
-      { key: "status", label: "Status", options: ["OK", "Low", "Critical"] },
-    ],
+    searchKeys: ["name", "supplier"],
+    filters: [{ key: "category", label: "Category", options: [...new Set(DATA.inventory.map((i) => i.category).filter(Boolean))] }],
     defaultSort: { key: "stock", dir: "asc" },
   });
 }
 
 function renderSuppliers(root) {
-  root.innerHTML = `${sectionHeader("Vendors", "Suppliers", addBtn("Add supplier", "add-sup"))}<div id="sup-table"></div>`;
-  document.getElementById("add-sup").onclick = () => toast("Supplier form goes here — hook to your Firestore 'suppliers' collection.");
-  mountDataTable(document.getElementById("sup-table"), {
+  renderCrudPage(root, {
+    eyebrow: "Vendors", title: "Suppliers", singular: "Supplier", addLabel: "Add supplier",
+    collectionName: "suppliers",
+    fields: [
+      { key: "name", label: "Supplier name", required: true },
+      { key: "contact", label: "Contact" },
+      { key: "products", label: "Products supplied" },
+      { key: "outstanding", label: "Outstanding (KSh)", type: "number", step: "1" },
+      { key: "lastPayment", label: "Last payment", type: "date" },
+    ],
     columns: [
       { key: "name", label: "Supplier" }, { key: "contact", label: "Contact", mono: true }, { key: "products", label: "Products supplied" },
       { key: "outstanding", label: "Outstanding", mono: true, align: "right", render: (r) => money(r.outstanding) },
       { key: "lastPayment", label: "Last payment", mono: true },
     ],
-    rows: SUPPLIERS, searchKeys: ["name", "products"], filters: [], defaultSort: { key: "outstanding", dir: "desc" },
+    searchKeys: ["name", "products"], filters: [], defaultSort: { key: "name", dir: "asc" },
   });
 }
 
 function renderExpenses(root) {
-  const totalMonth = EXPENSES.reduce((a, e) => a + e.amount, 0);
-  root.innerHTML = `${sectionHeader(`Month to date · ${money(totalMonth)}`, "Expenses", addBtn("Log expense", "add-exp"))}<div id="exp-table"></div>`;
-  document.getElementById("add-exp").onclick = () => toast("Expense form goes here — hook to your Firestore 'expenses' collection.");
-  mountDataTable(document.getElementById("exp-table"), {
+  const totalMonth = DATA.expenses.reduce((a, e) => a + (e.amount || 0), 0);
+  renderCrudPage(root, {
+    eyebrow: `Month to date · ${money(totalMonth)}`, title: "Expenses", singular: "Expense", addLabel: "Log expense",
+    collectionName: "expenses",
+    fields: [
+      { key: "date", label: "Date", type: "date", required: true, default: todayStr() },
+      { key: "category", label: "Category" },
+      { key: "desc", label: "Description", required: true },
+      { key: "amount", label: "Amount (KSh)", type: "number", step: "1" },
+      { key: "approvedBy", label: "Approved by" },
+    ],
     columns: [
       { key: "date", label: "Date", mono: true }, { key: "category", label: "Category" }, { key: "desc", label: "Description" },
       { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }, { key: "approvedBy", label: "Approved by" },
     ],
-    rows: EXPENSES, searchKeys: ["desc", "category"],
-    filters: [
-      { key: "category", label: "Category", options: [...new Set(EXPENSES.map((e) => e.category))] },
-      { key: "approvedBy", label: "Approved by", options: [...new Set(EXPENSES.map((e) => e.approvedBy))] },
-    ],
+    searchKeys: ["desc", "category"],
+    filters: [{ key: "category", label: "Category", options: [...new Set(DATA.expenses.map((e) => e.category).filter(Boolean))] }],
     defaultSort: { key: "date", dir: "desc" },
   });
 }
 
 function renderPayroll(root) {
-  const rows = BARBERS.map((b) => ({ id: b.id, name: b.name, base: 15000, commission: b.commission, tips: b.tips, deductions: 800, net: 15000 + b.commission + b.tips - 800 }));
-  root.innerHTML = `${sectionHeader("July 2026 pay run", "Payroll", addBtn("Run payroll", "run-payroll"))}<div id="payroll-table"></div>`;
-  document.getElementById("run-payroll").onclick = () => toast("Payroll run goes here — hook to your Firestore 'payroll' collection.");
+  const rows = DATA.barbers.map((b) => {
+    const stats = barberStats(b.name);
+    const commission = Math.round(stats.revenue * ((b.commissionRate || 0) / 100));
+    const base = b.baseSalary || 15000;
+    const deductions = b.deductions || 0;
+    return { id: b.id, name: b.name, base, commission, deductions, net: base + commission - deductions };
+  });
+  root.innerHTML = `${sectionHeader("Current pay run", "Payroll")}<div id="payroll-table"></div>`;
   mountDataTable(document.getElementById("payroll-table"), {
     columns: [
       { key: "name", label: "Employee" }, { key: "base", label: "Base salary", mono: true, align: "right", render: (r) => money(r.base) },
       { key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission) },
-      { key: "tips", label: "Tips", mono: true, align: "right", render: (r) => money(r.tips) },
       { key: "deductions", label: "Deductions", mono: true, align: "right", render: (r) => money(r.deductions) },
       { key: "net", label: "Net pay", mono: true, align: "right", render: (r) => money(r.net) },
     ],
-    rows, searchKeys: ["name"], filters: [], defaultSort: { key: "net", dir: "desc" },
+    rows, searchKeys: ["name"], filters: [], defaultSort: { key: "name", dir: "asc" },
   });
 }
 
 function renderReports(root) {
+  const salesLive = DATA.sales.filter((s) => !s.voided);
+  const byBarber = (() => {
+    const map = new Map();
+    salesLive.forEach((s) => map.set(s.barber || "—", (map.get(s.barber || "—") || 0) + (s.amount || 0)));
+    return [...map.entries()].map(([name, revenue]) => ({ name, revenue }));
+  })();
+  const byCustomer = (() => {
+    const map = new Map();
+    salesLive.forEach((s) => {
+      const k = s.customer || "Walk-in";
+      const cur = map.get(k) || { name: k, visits: 0, spend: 0 };
+      cur.visits += 1; cur.spend += s.amount || 0; map.set(k, cur);
+    });
+    return [...map.values()];
+  })();
+  const byService = (() => {
+    const map = new Map();
+    salesLive.forEach((s) => (s.items || []).forEach((it) => {
+      const cur = map.get(it.name) || { name: it.name, count: 0, revenue: 0 };
+      cur.revenue += it.price || 0; cur.count += 1; map.set(it.name, cur);
+    }));
+    return [...map.values()];
+  })();
   const reports = {
-    barber: { title: "Revenue by barber", cols: [{ key: "name", label: "Barber" }, { key: "revenue", label: "Revenue", mono: true, align: "right", render: (r) => money(r.revenue) }, { key: "customers", label: "Customers", align: "right" }], rows: BARBERS },
-    service: { title: "Revenue by service", cols: [{ key: "name", label: "Service" }, { key: "category", label: "Category" }, { key: "price", label: "Price", mono: true, align: "right", render: (r) => money(r.price) }], rows: SERVICES },
-    customer: { title: "Top spending customers", cols: [{ key: "name", label: "Customer" }, { key: "visits", label: "Visits", align: "right" }, { key: "spend", label: "Spend", mono: true, align: "right", render: (r) => money(r.spend) }], rows: CUSTOMERS },
-    payment: { title: "Sales by payment method", cols: [{ key: "id", label: "Receipt", mono: true }, { key: "method", label: "Method", render: (r) => pill(r.method, { Cash: "neutral", "M-Pesa": "info", Card: "info", Mixed: "warn" }) }, { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }], rows: SALES },
+    barber: { cols: [{ key: "name", label: "Barber" }, { key: "revenue", label: "Revenue", mono: true, align: "right", render: (r) => money(r.revenue) }], rows: byBarber, sort: { key: "revenue", dir: "desc" } },
+    service: { cols: [{ key: "name", label: "Service" }, { key: "count", label: "Times sold", align: "right" }, { key: "revenue", label: "Revenue", mono: true, align: "right", render: (r) => money(r.revenue) }], rows: byService, sort: { key: "revenue", dir: "desc" } },
+    customer: { cols: [{ key: "name", label: "Customer" }, { key: "visits", label: "Visits", align: "right" }, { key: "spend", label: "Spend", mono: true, align: "right", render: (r) => money(r.spend) }], rows: byCustomer, sort: { key: "spend", dir: "desc" } },
+    payment: { cols: [{ key: "itemsLabel", label: "Items" }, { key: "method", label: "Method", render: (r) => pill(r.method, { Cash: "neutral", "M-Pesa": "info", Card: "info", Mixed: "warn" }) }, { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }], rows: salesLive, sort: { key: "amount", dir: "desc" } },
   };
   const tabs = [["barber", "By barber"], ["service", "By service"], ["customer", "By customer"], ["payment", "By payment method"]];
   let active = "barber";
@@ -808,7 +1105,7 @@ function renderReports(root) {
   function draw() {
     root.querySelectorAll(".report-tab").forEach((b) => b.classList.toggle("active", b.dataset.k === active));
     const r = reports[active];
-    mountDataTable(document.getElementById("report-table"), { columns: r.cols, rows: r.rows, searchKeys: ["name", "id"], filters: [], defaultSort: { key: r.cols[1].key, dir: "desc" } });
+    mountDataTable(document.getElementById("report-table"), { columns: r.cols, rows: r.rows, searchKeys: ["name", "itemsLabel"], filters: [], defaultSort: r.sort });
   }
   root.querySelectorAll(".report-tab").forEach((b) => b.addEventListener("click", () => { active = b.dataset.k; draw(); }));
   draw();
@@ -818,15 +1115,16 @@ function renderAudit(root) {
   root.innerHTML = `${sectionHeader("Full accountability trail", "Audit log")}<div id="audit-table"></div>`;
   mountDataTable(document.getElementById("audit-table"), {
     columns: [
-      { key: "time", label: "Timestamp", mono: true }, { key: "user", label: "User" }, { key: "action", label: "Action" },
+      { key: "ms", label: "Timestamp", mono: true, render: (r) => fmtAuditTime(r) },
+      { key: "user", label: "User" }, { key: "action", label: "Action" },
       { key: "severity", label: "Severity", render: (r) => pill(r.severity) },
     ],
-    rows: AUDIT, searchKeys: ["user", "action"],
+    rows: () => DATA.audit, searchKeys: ["user", "action"],
     filters: [
-      { key: "user", label: "User", options: [...new Set(AUDIT.map((a) => a.user))] },
+      { key: "user", label: "User", options: [...new Set(DATA.audit.map((a) => a.user).filter(Boolean))] },
       { key: "severity", label: "Severity", options: ["High", "Medium", "Low"] },
     ],
-    defaultSort: { key: "time", dir: "desc" },
+    defaultSort: { key: "ms", dir: "desc" },
   });
 }
 
@@ -1088,7 +1386,8 @@ function showAppShell() {
   document.getElementById("who-role").textContent = currentProfile.role + (isAdmin(currentProfile) ? " · Full access" : "");
   document.getElementById("date-label").textContent = new Date().toLocaleDateString("en-KE", { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
   buildNav();
-  goTo(isAdmin(currentProfile) ? "dashboard" : "dashboard");
+  goTo("dashboard");
+  subscribeAllData();
   if (isAdmin(currentProfile)) subscribeStaff();
 }
 
@@ -1096,6 +1395,7 @@ function showAuthScreen(message) {
   document.getElementById("app-shell").classList.add("hidden");
   document.getElementById("auth-screen").classList.remove("hidden");
   if (staffUnsub) { staffUnsub(); staffUnsub = null; }
+  unsubscribeAllData();
   renderAuthBody(message);
 }
 

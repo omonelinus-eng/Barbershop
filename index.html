@@ -3,1936 +3,1248 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Fikirini's — Barbershop Manager</title>
-<meta name="description" content="Barbershop management app — bookings, POS, staff, inventory and reports." />
-
-<!-- PWA / bookmark / install icon -->
+<title>Fikirini's Barbershop Manager</title>
+<meta name="description" content="Full accountability system for sales, staff, stock, and cash." />
 <meta name="theme-color" content="#15171C" />
-<meta name="mobile-web-app-capable" content="yes" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="icon" href="./icon-192.png" type="image/png" />
+<link rel="apple-touch-icon" href="./apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Fikirini's" />
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJz4KPGRlZnM+CjxwYXR0ZXJuIGlkPSdzJyB3aWR0aD0nMjguMjgnIGhlaWdodD0nMjguMjgnIHBhdHRlcm5UcmFuc2Zvcm09J3JvdGF0ZSg0NSknIHBhdHRlcm5Vbml0cz0ndXNlclNwYWNlT25Vc2UnPgo8cmVjdCB3aWR0aD0nMjguMjgnIGhlaWdodD0nOS40MycgeT0nMCcgZmlsbD0nI0IyM0EzNCcvPgo8cmVjdCB3aWR0aD0nMjguMjgnIGhlaWdodD0nOS40MycgeT0nOS40MycgZmlsbD0nI0ZGRkZGRicvPgo8cmVjdCB3aWR0aD0nMjguMjgnIGhlaWdodD0nOS40MycgeT0nMTguODYnIGZpbGw9JyMyRTQ3NjMnLz4KPC9wYXR0ZXJuPgo8L2RlZnM+CjxjaXJjbGUgY3g9JzUwJyBjeT0nNTAnIHI9JzQ4JyBmaWxsPScjMTUxNzFDJy8+CjxjaXJjbGUgY3g9JzUwJyBjeT0nNTAnIHI9JzQwJyBmaWxsPSd1cmwoI3MpJy8+CjxjaXJjbGUgY3g9JzUwJyBjeT0nNTAnIHI9JzQwJyBmaWxsPSdub25lJyBzdHJva2U9JyMxNTE3MUMnIHN0cm9rZS13aWR0aD0nNCcvPgo8L3N2Zz4=" />
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJz4KPGRlZnM+CjxwYXR0ZXJuIGlkPSdzJyB3aWR0aD0nMjguMjgnIGhlaWdodD0nMjguMjgnIHBhdHRlcm5UcmFuc2Zvcm09J3JvdGF0ZSg0NSknIHBhdHRlcm5Vbml0cz0ndXNlclNwYWNlT25Vc2UnPgo8cmVjdCB3aWR0aD0nMjguMjgnIGhlaWdodD0nOS40MycgeT0nMCcgZmlsbD0nI0IyM0EzNCcvPgo8cmVjdCB3aWR0aD0nMjguMjgnIGhlaWdodD0nOS40MycgeT0nOS40MycgZmlsbD0nI0ZGRkZGRicvPgo8cmVjdCB3aWR0aD0nMjguMjgnIGhlaWdodD0nOS40MycgeT0nMTguODYnIGZpbGw9JyMyRTQ3NjMnLz4KPC9wYXR0ZXJuPgo8L2RlZnM+CjxjaXJjbGUgY3g9JzUwJyBjeT0nNTAnIHI9JzQ4JyBmaWxsPScjMTUxNzFDJy8+CjxjaXJjbGUgY3g9JzUwJyBjeT0nNTAnIHI9JzQwJyBmaWxsPSd1cmwoI3MpJy8+CjxjaXJjbGUgY3g9JzUwJyBjeT0nNTAnIHI9JzQwJyBmaWxsPSdub25lJyBzdHJva2U9JyMxNTE3MUMnIHN0cm9rZS13aWR0aD0nNCcvPgo8L3N2Zz4=" />
-<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIkZpa2lyaW5pJ3MgQmFyYmVyc2hvcCBNYW5hZ2VyIiwgInNob3J0X25hbWUiOiAiRmlraXJpbmkncyIsICJkZXNjcmlwdGlvbiI6ICJCYXJiZXJzaG9wIG1hbmFnZW1lbnQgYXBwIGZvciBib29raW5ncywgUE9TLCBzdGFmZiwgaW52ZW50b3J5IGFuZCByZXBvcnRzLiIsICJzdGFydF91cmwiOiAiLiIsICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLCAiYmFja2dyb3VuZF9jb2xvciI6ICIjRUZFREU3IiwgInRoZW1lX2NvbG9yIjogIiMxNTE3MUMiLCAiaWNvbnMiOiBbeyJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBuYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNuSUhacFpYZENiM2c5SnpBZ01DQXhNREFnTVRBd0p6NEtQR1JsWm5NK0NqeHdZWFIwWlhKdUlHbGtQU2R6SnlCM2FXUjBhRDBuTWpndU1qZ25JR2hsYVdkb2REMG5Namd1TWpnbklIQmhkSFJsY201VWNtRnVjMlp2Y20wOUozSnZkR0YwWlNnME5Ta25JSEJoZEhSbGNtNVZibWwwY3owbmRYTmxjbE53WVdObFQyNVZjMlVuUGdvOGNtVmpkQ0IzYVdSMGFEMG5Namd1TWpnbklHaGxhV2RvZEQwbk1qZ3VNamduSUhCaGRIUmxjbTVWYm1sMGN6MG5kWE5sY2xOd1lXTmxUMjVWYzJVblBnbzhjbVZqZENCM2FXUjBhRDBuTWpndU1qZ25JR2hsYVdkb2REMG5PUzQwTXljZ2VUMG5NQ2NnWm1sc2JEMG5JMEl5TTBFek5DY3ZQZ284Y21WamRDQjNhV1IwYUQwbk1qZ3VNamduSUdobGFXZG9kRDBuT1M0ME15Y2dlVDBuT1M0ME15Y2dabWxzYkQwbkkwWkdSa1pHUmljdlBnbzhjbVZqZENCM2FXUjBhRDBuTWpndU1qZ25JR2hsYVdkb2REMG5PUzQwTXljZ2VUMG5NVGd1T0RZbklHWnBiR3c5SnlNeVJUUTNOak1uTHo0S1BDOXdZWFIwWlhKdVBnbzhMMlJsWm5NK0NqeGphWEpqYkdVZ1kzZzlKelV3SnlCamVUMG5OVEFuSUhJOUp6UThKeUJtYVd4c1BTY2pNVFV4TnpGREp5OCtDanhqYVhKamJHVWdZM2c5SnpVd0p5QmplVDBuTlRBbklISTlKelF3SnlCbWFXeHNQU2QxY213b0kzTXBKeTgrQ2p4amFYSmpiR1VnWTNnOUp6VXdKeUJqZVQwbk5UQW5JSEk5SnpRd0p5Qm1hV3hzUFNkdWIyNWxKeUJ6ZEhKdmEyVTlKeU14TlRFM01VTW5JSE4wY205clpTMTNhV1IwYUQwbk5DY3ZQZ284TDNOMlp6ND0iLCAic2l6ZXMiOiAiYW55IiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSJ9XX0=" />
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: #EFEDE7; }
-  #root { min-height: 100vh; }
-  #boot-loader {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 14px; font-family: 'Inter', sans-serif; color: #6B6A63;
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --ink:#15171C; --ink-soft:#1F222A; --paper:#EFEDE7; --paper-dim:#E4E1D8; --card:#FBFAF7; --line:#D8D4C8;
+    --text:#1B1D22; --text-dim:#6B6A63; --red:#B23A34; --red-deep:#8C2C28; --blue:#2E4763; --gold:#A9782F; --green:#3E6B4F; --white:#FFFFFF;
+    --font-d:'Fraunces',serif; --font-b:'Inter',sans-serif; --font-m:'IBM Plex Mono',monospace;
   }
-  #boot-loader .ring {
-    width: 34px; height: 34px; border-radius: 999px; border: 3px solid #D8D4C8;
-    border-top-color: #B23A34; animation: spin 0.8s linear infinite;
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);color:var(--text);font-family:var(--font-b);}
+  ::selection{background:var(--red);color:#fff;}
+  button{font-family:var(--font-b);cursor:pointer;transition:opacity .15s ease;}
+  button:hover{opacity:.85;}
+  button:disabled{opacity:.45;cursor:not-allowed;}
+  input,select{font-family:var(--font-b);}
+  input:focus,select:focus{outline:none;border-color:var(--red) !important;}
+  a{color:inherit;}
+  .hidden{display:none !important;}
+  .mono{font-family:var(--font-m);}
+
+  /* ---------- layout shell ---------- */
+  #app-shell{display:flex;min-height:100vh;}
+  .sidebar{width:252px;background:var(--ink);color:#fff;flex-shrink:0;position:sticky;top:0;height:100vh;
+    display:flex;flex-direction:column;padding:20px 14px;overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:0 6px 20px;}
+  .stripe-mark{border-radius:999px;flex-shrink:0;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25);
+    background:repeating-linear-gradient(45deg,var(--red) 0 6px,#fff 6px 12px,var(--blue) 12px 18px);}
+  .brand-name{font-family:var(--font-d);font-size:16px;font-weight:700;line-height:1.1;}
+  .brand-sub{font-family:var(--font-b);font-size:10.5px;color:#9A98A0;letter-spacing:.5px;}
+  .nav-group{margin-bottom:16px;}
+  .nav-group-label{font-size:10px;font-weight:700;color:#75737C;letter-spacing:1px;text-transform:uppercase;padding:0 10px 6px;}
+  .nav-btn{width:100%;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:7px;border:none;
+    cursor:pointer;margin-bottom:2px;background:transparent;color:#C9C7CF;font-size:13px;font-weight:500;text-align:left;}
+  .nav-btn svg{flex-shrink:0;}
+  .nav-btn.active{background:var(--red);color:#fff;font-weight:600;}
+  .sidebar-foot{margin-top:auto;padding:12px 10px;border-top:1px solid #2A2C34;}
+  .sidebar-foot .who-name{font-size:12.5px;font-weight:600;}
+  .sidebar-foot .who-role{font-size:11px;color:#8B8992;}
+  .sidebar-foot .foot-actions{display:flex;gap:6px;margin-top:10px;}
+  .foot-btn{flex:1;font-size:11px;padding:6px 4px;border-radius:6px;border:1px solid #33353E;background:transparent;color:#C9C7CF;}
+
+  main{flex:1;min-width:0;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+    border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:5;gap:10px;flex-wrap:wrap;}
+  .crumb{font-size:12.5px;color:var(--text-dim);}
+  .crumb b{color:var(--text);font-weight:600;}
+  .topbar-right{display:flex;align-items:center;gap:10px;}
+  .date-label{font-family:var(--font-m);font-size:12px;color:var(--text-dim);}
+  .install-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:7px;border:1px solid var(--line);
+    background:var(--card);color:var(--text);font-size:12px;font-weight:600;}
+  .page-wrap{padding:26px 28px 60px;max-width:1400px;}
+
+  /* ---------- headers / cards ---------- */
+  .section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+  .eyebrow{font-size:11.5px;color:var(--red);font-weight:700;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:4px;}
+  .h1{font-family:var(--font-d);font-size:28px;color:var(--text);margin:0;font-weight:600;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;}
+  .stat-grid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  .stat-card{padding:16px 18px;flex:1;min-width:180px;}
+  .stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .stat-label{font-size:12px;color:var(--text-dim);font-weight:600;letter-spacing:.3px;text-transform:uppercase;}
+  .stat-value{font-family:var(--font-m);font-size:24px;color:var(--text);font-weight:600;}
+  .stat-sub{font-size:12px;color:var(--text-dim);margin-top:4px;}
+
+  /* ---------- pills / buttons ---------- */
+  .pill{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;letter-spacing:.2px;display:inline-block;}
+  .pill-neutral{background:#E7E4DA;color:var(--text-dim);}
+  .pill-good{background:#E1EBE3;color:var(--green);}
+  .pill-warn{background:#F3E6CF;color:var(--gold);}
+  .pill-bad{background:#F3DEDB;color:var(--red-deep);}
+  .pill-info{background:#DEE5EC;color:var(--blue);}
+  .btn{padding:9px 14px;border-radius:8px;border:none;font-weight:600;font-size:12.5px;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary{background:var(--red);color:#fff;}
+  .btn-ghost{background:var(--card);color:var(--text);border:1px solid var(--line);}
+  .btn-sm{padding:5px 9px;font-size:11.5px;border-radius:6px;}
+  .btn-danger{background:#F3DEDB;color:var(--red-deep);border:1px solid #E7C6C1;}
+  .btn-ok{background:#E1EBE3;color:var(--green);border:1px solid #CFE2D4;}
+
+  /* ---------- data table ---------- */
+  .table-card{overflow:hidden;}
+  .controls-bar{display:flex;gap:10px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .search-wrap{position:relative;flex:1 1 200px;min-width:180px;}
+  .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;}
+  .search-input{width:100%;font-size:13px;padding:8px 10px 8px 30px;border:1px solid var(--line);border-radius:7px;
+    background:var(--paper);color:var(--text);box-sizing:border-box;}
+  .filter-select{font-size:12.5px;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--text);}
+  .count-label{font-family:var(--font-m);font-size:11.5px;color:var(--text-dim);margin-left:auto;white-space:nowrap;}
+  .table-scroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;min-width:640px;}
+  th{padding:10px 16px;cursor:pointer;user-select:none;font-size:11px;font-weight:700;color:var(--text-dim);
+    letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--paper-dim);text-align:left;}
+  .sort-ic{opacity:.45;font-size:10px;margin-left:3px;}
+  td{padding:11px 16px;font-size:13px;color:var(--text);white-space:nowrap;border-bottom:1px solid var(--line);}
+  tbody tr:hover td{background:var(--paper-dim);}
+  .empty-row{text-align:center !important;padding:28px !important;color:var(--text-dim);white-space:normal !important;}
+  .row-actions{display:flex;gap:6px;white-space:nowrap;}
+
+  /* ---------- auth screens ---------- */
+  #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);padding:20px;}
+  .auth-card{width:100%;max-width:380px;background:var(--card);border-radius:14px;padding:30px 28px;position:relative;overflow:hidden;}
+  .auth-stripe{position:absolute;top:0;left:0;right:0;height:6px;background:repeating-linear-gradient(90deg,var(--red) 0 14px,#fff 14px 20px,var(--blue) 20px 34px);}
+  .auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+  .auth-title{font-family:var(--font-d);font-size:20px;font-weight:600;margin:0 0 4px;}
+  .auth-sub{font-size:12.5px;color:var(--text-dim);margin:0 0 20px;line-height:1.5;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11.5px;font-weight:600;color:var(--text-dim);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
+  .field input,.field select{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:13.5px;color:var(--text);}
+  .auth-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--paper);padding:4px;border-radius:9px;}
+  .auth-tab{flex:1;padding:8px;border:none;border-radius:6px;background:transparent;font-size:12.5px;font-weight:600;color:var(--text-dim);}
+  .auth-tab.active{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+  .auth-error{background:#F3DEDB;color:var(--red-deep);font-size:12.5px;padding:9px 11px;border-radius:8px;margin-bottom:14px;line-height:1.4;}
+  .auth-note{background:#DEE5EC;color:var(--blue);font-size:12px;padding:9px 11px;border-radius:8px;margin-bottom:14px;line-height:1.4;}
+  .auth-loading{color:#fff;font-family:var(--font-b);font-size:13px;text-align:center;}
+
+  /* ---------- modal ---------- */
+  .modal-overlay{position:fixed;inset:0;background:rgba(21,23,28,.55);display:flex;align-items:center;justify-content:center;
+    z-index:50;padding:16px;}
+  .modal{width:100%;max-width:420px;background:var(--card);border-radius:12px;padding:24px;max-height:92vh;overflow-y:auto;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .modal-title{font-family:var(--font-d);font-size:17px;font-weight:600;margin:0;}
+  .modal-close{background:transparent;border:none;padding:4px;color:var(--text-dim);}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+  .credential-box{background:var(--ink);color:#fff;border-radius:9px;padding:14px;font-family:var(--font-m);font-size:12.5px;line-height:1.9;margin-top:10px;}
+  .credential-box b{color:#F3E6CF;}
+
+  /* ---------- toast ---------- */
+  #toast-wrap{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:100;}
+  .toast{background:var(--ink);color:#fff;padding:11px 16px;border-radius:8px;font-size:12.5px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:320px;}
+
+  /* ---------- pos ---------- */
+  .pos-grid{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+  .pos-services{flex:1 1 320px;padding:16px;}
+  .service-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+  .service-tile{text-align:left;padding:9px 10px;border:1px solid var(--line);border-radius:7px;background:var(--paper);}
+  .service-tile .n{font-size:12.5px;color:var(--text);font-weight:500;}
+  .service-tile .p{font-size:11.5px;color:var(--text-dim);font-family:var(--font-m);}
+  .ticket{flex:1 1 260px;background:var(--ink);border-radius:10px;padding:18px;color:#fff;position:relative;overflow:hidden;}
+  .ticket-stripe{position:absolute;top:0;left:0;right:0;height:5px;background:repeating-linear-gradient(90deg,var(--red) 0 14px,#fff 14px 20px,var(--blue) 20px 34px);}
+  .ticket-lines{margin-top:12px;display:flex;flex-direction:column;gap:6px;min-height:60px;}
+  .ticket-line{display:flex;justify-content:space-between;font-family:var(--font-m);font-size:12.5px;}
+  .ticket-empty{font-size:12.5px;color:#9A9CA6;opacity:.7;}
+  .ticket-total{border-top:1px solid #333;margin-top:12px;padding-top:12px;display:flex;justify-content:space-between;
+    font-family:var(--font-m);font-size:18px;font-weight:600;}
+  .charge-btn{margin-top:14px;width:100%;padding:10px;border-radius:7px;border:none;background:var(--red);color:#fff;font-weight:600;font-size:13px;}
+
+  /* ---------- dashboard chart ---------- */
+  .dash-grid{display:flex;gap:16px;flex-wrap:wrap;}
+  .chart-card{flex:2 1 380px;padding:18px;}
+  .chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+  .chart-title{font-family:var(--font-d);font-size:16px;font-weight:600;}
+  .chart-trend{display:flex;align-items:center;gap:4px;font-family:var(--font-m);font-size:12px;color:var(--green);}
+  .bars{display:flex;align-items:flex-end;gap:14px;height:150px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .bar-val{font-family:var(--font-m);font-size:10.5px;color:var(--text-dim);}
+  .bar{width:100%;max-width:34px;border-radius:4px 4px 0 0;background:var(--blue);}
+  .bar.peak{background:var(--red);}
+  .bar-day{font-size:11px;color:var(--text-dim);}
+  .stock-card{flex:1 1 260px;padding:18px;}
+  .stock-row{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:8px;}
+  .stock-row:last-child{border:none;margin:0;padding:0;}
+  .stock-name{font-size:13px;color:var(--text);font-weight:500;}
+  .stock-meta{font-family:var(--font-m);font-size:11px;color:var(--text-dim);}
+
+  /* ---------- report tabs ---------- */
+  .report-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .report-tab{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:12.5px;font-weight:600;}
+  .report-tab.active{background:var(--red);color:#fff;border-color:var(--red);}
+
+  /* ---------- ios install banner ---------- */
+  #ios-banner{position:fixed;left:12px;right:12px;bottom:12px;background:var(--ink);color:#fff;border-radius:12px;padding:12px 14px;
+    display:flex;align-items:center;gap:10px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.3);}
+  #ios-banner p{margin:0;font-size:12.5px;line-height:1.4;flex:1;}
+  #ios-banner button{background:transparent;border:none;color:#9A9CA6;padding:4px;}
+
+  @media (max-width:860px){
+    .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:40;transform:translateX(-100%);transition:transform .2s ease;}
+    .sidebar.open{transform:translateX(0);}
+    .menu-btn{display:inline-flex !important;}
+    .page-wrap{padding:20px 16px 50px;}
+    .topbar{padding:12px 16px;}
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .menu-btn{display:none;background:transparent;border:none;color:var(--text);padding:6px;margin-right:4px;}
 </style>
 </head>
 <body>
-<div id="root"><div id="boot-loader"><div class="ring"></div><div>Loading Fikirini's…</div></div></div>
 
-<!-- Babel Standalone transforms the JSX/ESM app script below, in the browser, at load time. -->
-<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
-<script>
-  // If the app hasn't replaced the boot loader within a few seconds, or a script fails to
-  // load/parse, show a real error instead of leaving a silent spinner forever.
-  window.addEventListener('error', function (e) {
-    showBootError((e && e.message) || 'Unknown script error');
-  });
-  function showBootError(msg) {
-    var el = document.getElementById('root');
-    if (!el || el.dataset.mounted === 'true') return;
-    el.innerHTML =
-      '<div id="boot-loader"><div style="max-width:360px;text-align:center;color:#8C2C28;font-family:Inter,sans-serif;">' +
-      '<div style="font-weight:700;margin-bottom:8px;">Something failed to load</div>' +
-      '<div style="font-size:12.5px;line-height:1.5;color:#6B6A63;word-break:break-word;">' + msg + '</div>' +
-      '<div style="font-size:11.5px;margin-top:10px;color:#6B6A63;">Check your internet connection and reload. If this keeps happening, open the browser console for details.</div>' +
-      '</div></div>';
-  }
-  setTimeout(function () {
-    var el = document.getElementById('root');
-    if (el && el.dataset.mounted !== 'true') {
-      showBootError('The app is taking longer than expected to start (still waiting after 10s). This usually means a required script failed to load.');
-    }
-  }, 10000);
-</script>
-<script type="text/babel" data-type="module" data-presets="react">
-import React, { useState, useEffect, useMemo, useRef } from 'https://esm.sh/react@18.3.1';
-import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client?external=react';
-import {
-  LayoutDashboard, CalendarCheck, ShoppingCart, Users, Scissors, Boxes,
-  Truck, Receipt, Wallet, BarChart3, ShieldCheck, Search, ArrowUp, ArrowDown,
-  ArrowUpDown, Plus, AlertTriangle, Star, X, Menu, Banknote, TrendingUp,
-  PackageX, UserCheck, Clock3, LogOut, UserPlus, KeyRound, Copy, Check,
-  Eye, EyeOff, Power, Loader2, Mail, Lock, RefreshCw, Settings as SettingsIcon,
-  Database, Inbox
-} from 'https://esm.sh/lucide-react@0.383.0?external=react';
+<!-- ============================= AUTH SCREEN ============================= -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-stripe"></div>
+    <div class="auth-brand">
+      <div class="stripe-mark" style="width:30px;height:30px;"></div>
+      <div>
+        <div class="brand-name" style="color:var(--text);">Fikirini's</div>
+        <div class="brand-sub" style="color:var(--text-dim);">BARBERSHOP MANAGER</div>
+      </div>
+    </div>
+    <div id="auth-body"><div class="auth-loading" style="color:var(--text-dim);">Loading...</div></div>
+  </div>
+</div>
 
-import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+<!-- ============================= APP SHELL ============================= -->
+<div id="app-shell" class="hidden">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="stripe-mark" style="width:30px;height:30px;"></div>
+      <div>
+        <div class="brand-name">Fikirini's</div>
+        <div class="brand-sub">BARBERSHOP MANAGER</div>
+      </div>
+    </div>
+    <div id="nav-container"></div>
+    <div class="sidebar-foot">
+      <div class="who-name" id="who-name">—</div>
+      <div class="who-role" id="who-role">—</div>
+      <div class="foot-actions">
+        <button class="foot-btn" id="btn-account">Account</button>
+        <button class="foot-btn" id="btn-signout">Sign out</button>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="menu-btn" id="menu-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="crumb"><b>Fikirini's</b> / <span id="crumb-page">Dashboard</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="install-btn hidden" id="install-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          Install app
+        </button>
+        <div class="date-label" id="date-label"></div>
+      </div>
+    </div>
+    <div class="page-wrap" id="page-wrap"></div>
+  </main>
+</div>
+
+<div id="toast-wrap"></div>
+<div id="modal-root"></div>
+
+<div id="ios-banner" class="hidden">
+  <p>Install this app: tap <b>Share</b>, then <b>Add to Home Screen</b>.</p>
+  <button id="ios-dismiss">✕</button>
+</div>
+
+<script type="module">
+/* ============================================================
+   FIREBASE SETUP
+   ============================================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  signOut, sendPasswordResetEmail
+  signOut, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where,
-  onSnapshot, serverTimestamp, writeBatch, getDocs
+  getFirestore, doc, setDoc, getDoc, getDocs, collection, query, where, orderBy,
+  onSnapshot, updateDoc, serverTimestamp, limit,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
-/* ---------------------------------- FIREBASE ---------------------------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyCpe_kBZ57n-jtKSB6PaNy5GgxKZAetrHs",
   authDomain: "barbershop-a96bd.firebaseapp.com",
   projectId: "barbershop-a96bd",
   storageBucket: "barbershop-a96bd.firebasestorage.app",
   messagingSenderId: "123892155529",
-  appId: "1:123892155529:web:d72da4f73229e127dff258"
+  appId: "1:123892155529:web:d72da4f73229e127dff258",
 };
 
-const fbApp = initializeApp(firebaseConfig);
-const auth = getAuth(fbApp);
-const db = getFirestore(fbApp);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-// Updated by Root whenever the signed-in profile loads/changes; used to label audit entries.
-let CURRENT_USER_LABEL = "Someone";
+// A second, independent Firebase app instance. We use this ONLY to create
+// staff accounts, so that creating a new sign-in does not swap out the
+// admin's own active session (the Firebase client SDK auto-signs-in as
+// whichever user you just created on a given auth instance).
+const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+const secondaryAuth = getAuth(secondaryApp);
 
-async function checkAdminExists() {
-  const snap = await getDoc(doc(db, "meta", "setup"));
-  return snap.exists() && snap.data().adminCreated === true;
+/* ============================================================
+   CONSTANTS / HELPERS
+   ============================================================ */
+const ADMIN_ROLES = ["Owner", "Manager"];
+const ALL_ROLES = ["Owner", "Manager", "Barber", "Cashier", "Receptionist"];
+const isAdmin = (profile) => !!profile && ADMIN_ROLES.includes(profile.role);
+
+const money = (n) => "KSh " + Math.round(n || 0).toLocaleString("en-KE");
+const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+
+function toast(msg, tone = "default") {
+  const wrap = document.getElementById("toast-wrap");
+  const el = document.createElement("div");
+  el.className = "toast";
+  if (tone === "bad") el.style.background = "#8C2C28";
+  if (tone === "good") el.style.background = "#3E6B4F";
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 4200);
 }
 
-async function createAdminAccount({ email, password, businessName, displayName }) {
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-  const uid = cred.user.uid;
-  await setDoc(doc(db, "users", uid), {
-    role: "admin", email, username: "admin", displayName: displayName || "Owner",
-    active: true, createdAt: serverTimestamp(),
-  });
-  await setDoc(doc(db, "meta", "setup"), {
-    adminCreated: true, businessName: businessName || "Fikirini's", createdAt: serverTimestamp(),
-  });
-  return uid;
+function friendlyAuthError(err) {
+  const code = err && err.code ? err.code : "";
+  const map = {
+    "auth/email-already-in-use": "That email is already registered.",
+    "auth/invalid-email": "That email address doesn't look right.",
+    "auth/weak-password": "Password should be at least 6 characters.",
+    "auth/user-not-found": "No account found with that email.",
+    "auth/wrong-password": "Incorrect password.",
+    "auth/invalid-credential": "Incorrect email or password.",
+    "auth/too-many-requests": "Too many attempts. Please wait a moment and try again.",
+    "auth/network-request-failed": "Network error — check your connection.",
+  };
+  return map[code] || (err && err.message) || "Something went wrong.";
 }
 
-async function loginWithEmail(email, password) {
-  const cred = await signInWithEmailAndPassword(auth, email, password);
-  return cred.user;
+function pill(text, toneMap) {
+  const tones = {
+    Active: "good", Confirmed: "info", Completed: "good", "In Progress": "warn",
+    "No-show": "bad", Cancelled: "bad", "On Leave": "warn", OK: "good", Low: "warn",
+    Critical: "bad", VIP: "info", Standard: "neutral", New: "warn",
+    High: "bad", Medium: "warn", Inactive: "neutral", Deactivated: "bad",
+    Owner: "info", Manager: "info", Barber: "neutral", Cashier: "neutral", Receptionist: "neutral",
+  };
+  const tone = (toneMap && toneMap[text]) || tones[text] || "neutral";
+  return `<span class="pill pill-${tone}">${escapeHtml(text)}</span>`;
 }
 
-async function logout() {
-  await signOut(auth);
-}
-
-// Creates a staff auth account + Firestore profile WITHOUT signing the admin out,
-// by using a throwaway secondary Firebase app instance.
-async function createStaffAccount({ email, password, username, displayName }) {
-  const secondaryApp = initializeApp(firebaseConfig, "Secondary-" + Date.now());
-  const secondaryAuth = getAuth(secondaryApp);
-  try {
-    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-    const uid = cred.user.uid;
-    await setDoc(doc(db, "users", uid), {
-      role: "staff", username, displayName, email,
-      active: true, createdAt: serverTimestamp(),
-    });
-    await signOut(secondaryAuth);
-    return uid;
-  } finally {
-    await deleteApp(secondaryApp);
-  }
-}
-
-async function setStaffActive(uid, active) {
-  await updateDoc(doc(db, "users", uid), { active });
-}
-
-async function sendReset(email) {
-  await sendPasswordResetEmail(auth, email);
-}
-
-function genPassword() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
-  let out = "";
-  for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
-  return out;
-}
-
-async function logAudit(action, severity = "Low") {
-  try {
-    const ref = doc(collection(db, "auditLog"));
-    await setDoc(ref, {
-      time: new Date().toLocaleString("en-KE", { hour12: false }),
-      user: CURRENT_USER_LABEL, action, severity, sample: false, createdAt: serverTimestamp(),
-    });
-  } catch (e) { /* non-fatal — never block the user's action on a logging failure */ }
-}
-
-/* ---------------------------------- TOKENS ---------------------------------- */
-const C = {
-  ink: "#15171C",
-  inkSoft: "#1F222A",
-  paper: "#EFEDE7",
-  paperDim: "#E4E1D8",
-  card: "#FBFAF7",
-  line: "#D8D4C8",
-  text: "#1B1D22",
-  textDim: "#6B6A63",
-  red: "#B23A34",
-  redDeep: "#8C2C28",
-  blue: "#2E4763",
-  gold: "#A9782F",
-  green: "#3E6B4F",
-  white: "#FFFFFF",
+const ICONS = {
+  dashboard: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>`,
+  appointments: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>`,
+  pos: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`,
+  customers: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+  barbers: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>`,
+  services: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>`,
+  inventory: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8V21H3V8"/><path d="M1 3h22v5H1z"/><line x1="10" y1="12" x2="14" y2="12"/></svg>`,
+  suppliers: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`,
+  expenses: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+  payroll: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>`,
+  reports: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+  audit: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  staff: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  search: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
+  plus: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
 };
 
-const FONT_DISPLAY = "'Fraunces', serif";
-const FONT_BODY = "'Inter', sans-serif";
-const FONT_MONO = "'IBM Plex Mono', monospace";
-
-const money = (n) =>
-  "KSh " + Math.round(n || 0).toLocaleString("en-KE");
-
-/* ---------------------------------- SAMPLE DATA (seed source only) ----------------------------------
-   These arrays are never rendered directly — they only exist so Settings → "Load sample data" has
-   something ready-made to write into Firestore. Every live page reads from Firestore via
-   useCollectionData(). ------------------------------------------------------------------------------ */
-const SAMPLE_BARBERS = [
-  { name: "Otieno Mwangi", specialty: "Fades & Design", status: "Active", customers: 142, revenue: 186400, commission: 55920, tips: 9200, rating: 4.9, attendance: "98%" },
-  { name: "Kevin Wafula", specialty: "Beard Sculpting", status: "Active", customers: 118, revenue: 151200, commission: 45360, tips: 6100, rating: 4.7, attendance: "95%" },
-  { name: "Brian Kiptoo", specialty: "Classic Cuts", status: "Active", customers: 97, revenue: 121000, commission: 36300, tips: 4400, rating: 4.6, attendance: "100%" },
-  { name: "Dennis Achieng", specialty: "Dreadlocks", status: "On Leave", customers: 64, revenue: 88300, commission: 26490, tips: 3100, rating: 4.8, attendance: "89%" },
-  { name: "Felix Ouma", specialty: "Kids & Classic", status: "Active", customers: 133, revenue: 109500, commission: 32850, tips: 5200, rating: 4.5, attendance: "97%" },
-  { name: "Samuel Njoroge", specialty: "VIP / Colour", status: "Active", customers: 71, revenue: 143700, commission: 43110, tips: 7800, rating: 5.0, attendance: "100%" },
+/* ============================================================
+   MOCK OPERATIONAL DATA
+   (Staff/auth below is 100% real Firebase. These modules keep demo
+   data so every screen is fully explorable — swap in Firestore
+   collections here using the same pattern as the Staff page.)
+   ============================================================ */
+const BARBERS = [
+  { id: "B1", name: "Otieno Mwangi", specialty: "Fades & Design", status: "Active", customers: 142, revenue: 186400, commission: 55920, tips: 9200, rating: 4.9, attendance: "98%" },
+  { id: "B2", name: "Kevin Wafula", specialty: "Beard Sculpting", status: "Active", customers: 118, revenue: 151200, commission: 45360, tips: 6100, rating: 4.7, attendance: "95%" },
+  { id: "B3", name: "Brian Kiptoo", specialty: "Classic Cuts", status: "Active", customers: 97, revenue: 121000, commission: 36300, tips: 4400, rating: 4.6, attendance: "100%" },
+  { id: "B4", name: "Dennis Achieng", specialty: "Dreadlocks", status: "On Leave", customers: 64, revenue: 88300, commission: 26490, tips: 3100, rating: 4.8, attendance: "89%" },
+  { id: "B5", name: "Felix Ouma", specialty: "Kids & Classic", status: "Active", customers: 133, revenue: 109500, commission: 32850, tips: 5200, rating: 4.5, attendance: "97%" },
+  { id: "B6", name: "Samuel Njoroge", specialty: "VIP / Colour", status: "Active", customers: 71, revenue: 143700, commission: 43110, tips: 7800, rating: 5.0, attendance: "100%" },
 ];
-
-const SAMPLE_SERVICES = [
-  { name: "Classic Haircut", category: "Hair", price: 400, duration: 30, commission: "30%", status: "Active" },
-  { name: "Skin Fade", category: "Hair", price: 600, duration: 40, commission: "30%", status: "Active" },
-  { name: "Beard Trim", category: "Beard", price: 250, duration: 20, commission: "35%", status: "Active" },
-  { name: "Hair Wash", category: "Wash", price: 150, duration: 15, commission: "25%", status: "Active" },
-  { name: "Hair Colouring", category: "Colour", price: 1500, duration: 60, commission: "30%", status: "Active" },
-  { name: "Facial", category: "Skin", price: 900, duration: 35, commission: "30%", status: "Active" },
-  { name: "Dreadlocks Retouch", category: "Dreadlocks", price: 1200, duration: 90, commission: "30%", status: "Active" },
-  { name: "Hot Towel Shave", category: "Beard", price: 350, duration: 25, commission: "35%", status: "Active" },
-  { name: "Kids Haircut", category: "Hair", price: 300, duration: 25, commission: "30%", status: "Active" },
-  { name: "VIP Full Package", category: "VIP", price: 2500, duration: 90, commission: "25%", status: "Active" },
-  { name: "Eyebrow Trim", category: "Skin", price: 150, duration: 10, commission: "35%", status: "Inactive" },
-  { name: "Scalp Treatment", category: "Hair", price: 800, duration: 30, commission: "30%", status: "Active" },
+const SERVICES = [
+  { id: "S1", name: "Classic Haircut", category: "Hair", price: 400, duration: 30, commission: "30%", status: "Active" },
+  { id: "S2", name: "Skin Fade", category: "Hair", price: 600, duration: 40, commission: "30%", status: "Active" },
+  { id: "S3", name: "Beard Trim", category: "Beard", price: 250, duration: 20, commission: "35%", status: "Active" },
+  { id: "S4", name: "Hair Wash", category: "Wash", price: 150, duration: 15, commission: "25%", status: "Active" },
+  { id: "S5", name: "Hair Colouring", category: "Colour", price: 1500, duration: 60, commission: "30%", status: "Active" },
+  { id: "S6", name: "Facial", category: "Skin", price: 900, duration: 35, commission: "30%", status: "Active" },
+  { id: "S7", name: "Dreadlocks Retouch", category: "Dreadlocks", price: 1200, duration: 90, commission: "30%", status: "Active" },
+  { id: "S8", name: "Hot Towel Shave", category: "Beard", price: 350, duration: 25, commission: "35%", status: "Active" },
+  { id: "S9", name: "Kids Haircut", category: "Hair", price: 300, duration: 25, commission: "30%", status: "Active" },
+  { id: "S10", name: "VIP Full Package", category: "VIP", price: 2500, duration: 90, commission: "25%", status: "Active" },
+  { id: "S11", name: "Eyebrow Trim", category: "Skin", price: 150, duration: 10, commission: "35%", status: "Inactive" },
+  { id: "S12", name: "Scalp Treatment", category: "Hair", price: 800, duration: 30, commission: "30%", status: "Active" },
 ];
-
-const SAMPLE_CUSTOMERS = [
-  { name: "James Mutua", phone: "0712 334 552", visits: 24, preferredBarber: "Otieno Mwangi", membership: "VIP", spend: 18400, lastVisit: "2026-07-21" },
-  { name: "Peter Kamau", phone: "0721 445 990", visits: 11, preferredBarber: "Kevin Wafula", membership: "Standard", spend: 6600, lastVisit: "2026-07-18" },
-  { name: "Alex Njuguna", phone: "0733 210 887", visits: 3, preferredBarber: "Brian Kiptoo", membership: "New", spend: 1200, lastVisit: "2026-07-24" },
-  { name: "David Omondi", phone: "0700 991 220", visits: 32, preferredBarber: "Samuel Njoroge", membership: "VIP", spend: 41200, lastVisit: "2026-07-25" },
-  { name: "Ibrahim Hassan", phone: "0745 667 123", visits: 8, preferredBarber: "Felix Ouma", membership: "Standard", spend: 4100, lastVisit: "2026-07-10" },
-  { name: "Collins Barasa", phone: "0798 224 561", visits: 15, preferredBarber: "Otieno Mwangi", membership: "Standard", spend: 9800, lastVisit: "2026-07-22" },
-  { name: "Simon Kariuki", phone: "0711 887 340", visits: 1, preferredBarber: "Dennis Achieng", membership: "New", spend: 700, lastVisit: "2026-07-19" },
-  { name: "Emmanuel Chege", phone: "0722 556 781", visits: 19, preferredBarber: "Kevin Wafula", membership: "VIP", spend: 22300, lastVisit: "2026-07-23" },
-  { name: "Victor Odera", phone: "0790 112 004", visits: 6, preferredBarber: "Brian Kiptoo", membership: "Standard", spend: 3300, lastVisit: "2026-07-14" },
-  { name: "Musa Abdi", phone: "0708 776 213", visits: 27, preferredBarber: "Samuel Njoroge", membership: "VIP", spend: 33900, lastVisit: "2026-07-20" },
+const CUSTOMERS = [
+  { id: "C1", name: "James Mutua", phone: "0712 334 552", visits: 24, preferredBarber: "Otieno Mwangi", membership: "VIP", spend: 18400, lastVisit: "2026-07-21" },
+  { id: "C2", name: "Peter Kamau", phone: "0721 445 990", visits: 11, preferredBarber: "Kevin Wafula", membership: "Standard", spend: 6600, lastVisit: "2026-07-18" },
+  { id: "C3", name: "Alex Njuguna", phone: "0733 210 887", visits: 3, preferredBarber: "Brian Kiptoo", membership: "New", spend: 1200, lastVisit: "2026-07-24" },
+  { id: "C4", name: "David Omondi", phone: "0700 991 220", visits: 32, preferredBarber: "Samuel Njoroge", membership: "VIP", spend: 41200, lastVisit: "2026-07-25" },
+  { id: "C5", name: "Ibrahim Hassan", phone: "0745 667 123", visits: 8, preferredBarber: "Felix Ouma", membership: "Standard", spend: 4100, lastVisit: "2026-07-10" },
+  { id: "C6", name: "Collins Barasa", phone: "0798 224 561", visits: 15, preferredBarber: "Otieno Mwangi", membership: "Standard", spend: 9800, lastVisit: "2026-07-22" },
+  { id: "C7", name: "Simon Kariuki", phone: "0711 887 340", visits: 1, preferredBarber: "Dennis Achieng", membership: "New", spend: 700, lastVisit: "2026-07-19" },
+  { id: "C8", name: "Emmanuel Chege", phone: "0722 556 781", visits: 19, preferredBarber: "Kevin Wafula", membership: "VIP", spend: 22300, lastVisit: "2026-07-23" },
+  { id: "C9", name: "Victor Odera", phone: "0790 112 004", visits: 6, preferredBarber: "Brian Kiptoo", membership: "Standard", spend: 3300, lastVisit: "2026-07-14" },
+  { id: "C10", name: "Musa Abdi", phone: "0708 776 213", visits: 27, preferredBarber: "Samuel Njoroge", membership: "VIP", spend: 33900, lastVisit: "2026-07-20" },
 ];
-
-const SAMPLE_APPOINTMENTS = [
-  { time: "09:00", customer: "James Mutua", barber: "Otieno Mwangi", service: "Skin Fade", status: "Confirmed", type: "Booking" },
-  { time: "09:30", customer: "Walk-in", barber: "Brian Kiptoo", service: "Classic Haircut", status: "In Progress", type: "Walk-in" },
-  { time: "10:00", customer: "David Omondi", barber: "Samuel Njoroge", service: "VIP Full Package", status: "Confirmed", type: "Booking" },
-  { time: "10:15", customer: "Peter Kamau", barber: "Kevin Wafula", service: "Beard Trim", status: "No-show", type: "Booking" },
-  { time: "10:45", customer: "Walk-in", barber: "Felix Ouma", service: "Kids Haircut", status: "Completed", type: "Walk-in" },
-  { time: "11:00", customer: "Emmanuel Chege", barber: "Kevin Wafula", service: "Hair Colouring", status: "Confirmed", type: "Booking" },
-  { time: "11:30", customer: "Musa Abdi", barber: "Samuel Njoroge", service: "Beard Trim", status: "Cancelled", type: "Booking" },
-  { time: "12:00", customer: "Alex Njuguna", barber: "Brian Kiptoo", service: "Classic Haircut", status: "Completed", type: "Booking" },
-  { time: "13:00", customer: "Walk-in", barber: "Otieno Mwangi", service: "Skin Fade", status: "In Progress", type: "Walk-in" },
-  { time: "13:30", customer: "Collins Barasa", barber: "Otieno Mwangi", service: "Hot Towel Shave", status: "Confirmed", type: "Booking" },
+const APPOINTMENTS = [
+  { id: "A1", time: "09:00", customer: "James Mutua", barber: "Otieno Mwangi", service: "Skin Fade", status: "Confirmed", type: "Booking" },
+  { id: "A2", time: "09:30", customer: "Walk-in", barber: "Brian Kiptoo", service: "Classic Haircut", status: "In Progress", type: "Walk-in" },
+  { id: "A3", time: "10:00", customer: "David Omondi", barber: "Samuel Njoroge", service: "VIP Full Package", status: "Confirmed", type: "Booking" },
+  { id: "A4", time: "10:15", customer: "Peter Kamau", barber: "Kevin Wafula", service: "Beard Trim", status: "No-show", type: "Booking" },
+  { id: "A5", time: "10:45", customer: "Walk-in", barber: "Felix Ouma", service: "Kids Haircut", status: "Completed", type: "Walk-in" },
+  { id: "A6", time: "11:00", customer: "Emmanuel Chege", barber: "Kevin Wafula", service: "Hair Colouring", status: "Confirmed", type: "Booking" },
+  { id: "A7", time: "11:30", customer: "Musa Abdi", barber: "Samuel Njoroge", service: "Beard Trim", status: "Cancelled", type: "Booking" },
+  { id: "A8", time: "12:00", customer: "Alex Njuguna", barber: "Brian Kiptoo", service: "Classic Haircut", status: "Completed", type: "Booking" },
+  { id: "A9", time: "13:00", customer: "Walk-in", barber: "Otieno Mwangi", service: "Skin Fade", status: "In Progress", type: "Walk-in" },
+  { id: "A10", time: "13:30", customer: "Collins Barasa", barber: "Otieno Mwangi", service: "Hot Towel Shave", status: "Confirmed", type: "Booking" },
 ];
-
-const SAMPLE_SALES = [
-  { date: "2026-07-25", time: "13:42", customer: "James Mutua", barber: "Otieno Mwangi", items: "Skin Fade, Beard Trim", amount: 850, method: "M-Pesa", cashier: "Ann Wanjiru" },
-  { date: "2026-07-25", time: "13:10", customer: "Walk-in", barber: "Felix Ouma", items: "Kids Haircut", amount: 300, method: "Cash", cashier: "Ann Wanjiru" },
-  { date: "2026-07-25", time: "12:55", customer: "David Omondi", barber: "Samuel Njoroge", items: "VIP Full Package", amount: 2500, method: "Card", cashier: "Ann Wanjiru" },
-  { date: "2026-07-25", time: "12:20", customer: "Alex Njuguna", barber: "Brian Kiptoo", items: "Classic Haircut", amount: 400, method: "Cash", cashier: "Brenda Achola" },
-  { date: "2026-07-25", time: "11:48", customer: "Emmanuel Chege", barber: "Kevin Wafula", items: "Hair Colouring, Hair Wash", amount: 1650, method: "M-Pesa", cashier: "Brenda Achola" },
-  { date: "2026-07-24", time: "17:30", customer: "Collins Barasa", barber: "Otieno Mwangi", items: "Hot Towel Shave", amount: 350, method: "Cash", cashier: "Ann Wanjiru" },
-  { date: "2026-07-24", time: "16:05", customer: "Musa Abdi", barber: "Samuel Njoroge", items: "Beard Trim, Facial", amount: 1150, method: "Mixed", cashier: "Ann Wanjiru" },
-  { date: "2026-07-24", time: "15:40", customer: "Ibrahim Hassan", barber: "Felix Ouma", items: "Classic Haircut", amount: 400, method: "M-Pesa", cashier: "Brenda Achola" },
-  { date: "2026-07-24", time: "14:12", customer: "Victor Odera", barber: "Brian Kiptoo", items: "Scalp Treatment", amount: 800, method: "Cash", cashier: "Ann Wanjiru" },
-  { date: "2026-07-23", time: "18:02", customer: "Simon Kariuki", barber: "Dennis Achieng", items: "Dreadlocks Retouch", amount: 1200, method: "M-Pesa", cashier: "Brenda Achola" },
+const SALES = [
+  { id: "R-1042", date: "2026-07-25", time: "13:42", customer: "James Mutua", barber: "Otieno Mwangi", items: "Skin Fade, Beard Trim", amount: 850, method: "M-Pesa", cashier: "Ann Wanjiru" },
+  { id: "R-1041", date: "2026-07-25", time: "13:10", customer: "Walk-in", barber: "Felix Ouma", items: "Kids Haircut", amount: 300, method: "Cash", cashier: "Ann Wanjiru" },
+  { id: "R-1040", date: "2026-07-25", time: "12:55", customer: "David Omondi", barber: "Samuel Njoroge", items: "VIP Full Package", amount: 2500, method: "Card", cashier: "Ann Wanjiru" },
+  { id: "R-1039", date: "2026-07-25", time: "12:20", customer: "Alex Njuguna", barber: "Brian Kiptoo", items: "Classic Haircut", amount: 400, method: "Cash", cashier: "Brenda Achola" },
+  { id: "R-1038", date: "2026-07-25", time: "11:48", customer: "Emmanuel Chege", barber: "Kevin Wafula", items: "Hair Colouring, Hair Wash", amount: 1650, method: "M-Pesa", cashier: "Brenda Achola" },
+  { id: "R-1037", date: "2026-07-24", time: "17:30", customer: "Collins Barasa", barber: "Otieno Mwangi", items: "Hot Towel Shave", amount: 350, method: "Cash", cashier: "Ann Wanjiru" },
+  { id: "R-1036", date: "2026-07-24", time: "16:05", customer: "Musa Abdi", barber: "Samuel Njoroge", items: "Beard Trim, Facial", amount: 1150, method: "Mixed", cashier: "Ann Wanjiru" },
+  { id: "R-1035", date: "2026-07-24", time: "15:40", customer: "Ibrahim Hassan", barber: "Felix Ouma", items: "Classic Haircut", amount: 400, method: "M-Pesa", cashier: "Brenda Achola" },
+  { id: "R-1034", date: "2026-07-24", time: "14:12", customer: "Victor Odera", barber: "Brian Kiptoo", items: "Scalp Treatment", amount: 800, method: "Cash", cashier: "Ann Wanjiru" },
+  { id: "R-1033", date: "2026-07-23", time: "18:02", customer: "Simon Kariuki", barber: "Dennis Achieng", items: "Dreadlocks Retouch", amount: 1200, method: "M-Pesa", cashier: "Brenda Achola" },
 ];
-
-const SAMPLE_INVENTORY = [
-  { name: "Clipper Blades (set)", category: "Tools", stock: 24, reorder: 10, unitCost: 450, supplier: "Kinyozi Supplies Co.", status: "OK" },
-  { name: "Hair Gel 500ml", category: "Products", stock: 6, reorder: 12, unitCost: 220, supplier: "Salon World Ltd", status: "Low" },
-  { name: "Shaving Cream", category: "Products", stock: 18, reorder: 10, unitCost: 180, supplier: "Salon World Ltd", status: "OK" },
-  { name: "Hair Dye - Black", category: "Colour", stock: 3, reorder: 8, unitCost: 650, supplier: "ColourPro Kenya", status: "Low" },
-  { name: "Towels (pack of 10)", category: "Consumables", stock: 9, reorder: 5, unitCost: 1200, supplier: "Textile Direct", status: "OK" },
-  { name: "Sanitizer 1L", category: "Consumables", stock: 2, reorder: 6, unitCost: 300, supplier: "Salon World Ltd", status: "Critical" },
-  { name: "Shampoo 1L", category: "Products", stock: 14, reorder: 8, unitCost: 380, supplier: "Salon World Ltd", status: "OK" },
-  { name: "Wax Tin", category: "Products", stock: 21, reorder: 10, unitCost: 260, supplier: "ColourPro Kenya", status: "OK" },
+const INVENTORY = [
+  { id: "I1", name: "Clipper Blades (set)", category: "Tools", stock: 24, reorder: 10, unitCost: 450, supplier: "Kinyozi Supplies Co.", status: "OK" },
+  { id: "I2", name: "Hair Gel 500ml", category: "Products", stock: 6, reorder: 12, unitCost: 220, supplier: "Salon World Ltd", status: "Low" },
+  { id: "I3", name: "Shaving Cream", category: "Products", stock: 18, reorder: 10, unitCost: 180, supplier: "Salon World Ltd", status: "OK" },
+  { id: "I4", name: "Hair Dye - Black", category: "Colour", stock: 3, reorder: 8, unitCost: 650, supplier: "ColourPro Kenya", status: "Low" },
+  { id: "I5", name: "Towels (pack of 10)", category: "Consumables", stock: 9, reorder: 5, unitCost: 1200, supplier: "Textile Direct", status: "OK" },
+  { id: "I6", name: "Sanitizer 1L", category: "Consumables", stock: 2, reorder: 6, unitCost: 300, supplier: "Salon World Ltd", status: "Critical" },
+  { id: "I7", name: "Shampoo 1L", category: "Products", stock: 14, reorder: 8, unitCost: 380, supplier: "Salon World Ltd", status: "OK" },
+  { id: "I8", name: "Wax Tin", category: "Products", stock: 21, reorder: 10, unitCost: 260, supplier: "ColourPro Kenya", status: "OK" },
 ];
-
-const SAMPLE_SUPPLIERS = [
-  { name: "Kinyozi Supplies Co.", contact: "0722 111 222", products: "Blades, Clippers", outstanding: 4500, lastPayment: "2026-07-12" },
-  { name: "Salon World Ltd", contact: "0733 445 990", products: "Gel, Shampoo, Sanitizer", outstanding: 12800, lastPayment: "2026-07-18" },
-  { name: "ColourPro Kenya", contact: "0700 667 812", products: "Dye, Wax", outstanding: 0, lastPayment: "2026-07-22" },
-  { name: "Textile Direct", contact: "0711 223 456", products: "Towels, Capes", outstanding: 2200, lastPayment: "2026-07-05" },
+const SUPPLIERS = [
+  { id: "SUP1", name: "Kinyozi Supplies Co.", contact: "0722 111 222", products: "Blades, Clippers", outstanding: 4500, lastPayment: "2026-07-12" },
+  { id: "SUP2", name: "Salon World Ltd", contact: "0733 445 990", products: "Gel, Shampoo, Sanitizer", outstanding: 12800, lastPayment: "2026-07-18" },
+  { id: "SUP3", name: "ColourPro Kenya", contact: "0700 667 812", products: "Dye, Wax", outstanding: 0, lastPayment: "2026-07-22" },
+  { id: "SUP4", name: "Textile Direct", contact: "0711 223 456", products: "Towels, Capes", outstanding: 2200, lastPayment: "2026-07-05" },
 ];
-
-const SAMPLE_EXPENSES = [
-  { date: "2026-07-25", category: "Rent", desc: "Shop rent - July", amount: 45000, approvedBy: "Manager" },
-  { date: "2026-07-24", category: "Electricity", desc: "KPLC bill", amount: 6200, approvedBy: "Manager" },
-  { date: "2026-07-23", category: "Supplies", desc: "Blade restock", amount: 3600, approvedBy: "Owner" },
-  { date: "2026-07-22", category: "Cleaning", desc: "Cleaning service", amount: 1500, approvedBy: "Manager" },
-  { date: "2026-07-21", category: "Advertising", desc: "Instagram promo", amount: 2000, approvedBy: "Owner" },
-  { date: "2026-07-20", category: "Water", desc: "Water bill", amount: 1800, approvedBy: "Manager" },
-  { date: "2026-07-19", category: "Repairs", desc: "Chair repair", amount: 4200, approvedBy: "Owner" },
+const EXPENSES = [
+  { id: "E1", date: "2026-07-25", category: "Rent", desc: "Shop rent - July", amount: 45000, approvedBy: "Manager" },
+  { id: "E2", date: "2026-07-24", category: "Electricity", desc: "KPLC bill", amount: 6200, approvedBy: "Manager" },
+  { id: "E3", date: "2026-07-23", category: "Supplies", desc: "Blade restock", amount: 3600, approvedBy: "Owner" },
+  { id: "E4", date: "2026-07-22", category: "Cleaning", desc: "Cleaning service", amount: 1500, approvedBy: "Manager" },
+  { id: "E5", date: "2026-07-21", category: "Advertising", desc: "Instagram promo", amount: 2000, approvedBy: "Owner" },
+  { id: "E6", date: "2026-07-20", category: "Water", desc: "Water bill", amount: 1800, approvedBy: "Manager" },
+  { id: "E7", date: "2026-07-19", category: "Repairs", desc: "Chair repair", amount: 4200, approvedBy: "Owner" },
 ];
-
-const SAMPLE_AUDIT = [
-  { time: "2026-07-25 13:44", user: "Ann Wanjiru", action: "Voided receipt R-1029", severity: "High" },
-  { time: "2026-07-25 12:56", user: "Manager - Grace", action: "Approved price change: VIP Full Package", severity: "Medium" },
-  { time: "2026-07-25 11:02", user: "Brenda Achola", action: "Logged in", severity: "Low" },
-  { time: "2026-07-24 18:05", user: "Manager - Grace", action: "End-of-day reconciliation approved, variance -KSh 50", severity: "Medium" },
-  { time: "2026-07-24 16:10", user: "Ann Wanjiru", action: "Issued refund on R-1020", severity: "High" },
-  { time: "2026-07-24 09:15", user: "Owner", action: "Edited inventory: Sanitizer 1L stock adjusted", severity: "Medium" },
-  { time: "2026-07-23 20:41", user: "Brenda Achola", action: "Logged out", severity: "Low" },
+const AUDIT = [
+  { id: "L1", time: "2026-07-25 13:44", user: "Ann Wanjiru", action: "Voided receipt R-1029", severity: "High" },
+  { id: "L2", time: "2026-07-25 12:56", user: "Manager - Grace", action: "Approved price change: VIP Full Package", severity: "Medium" },
+  { id: "L3", time: "2026-07-25 11:02", user: "Brenda Achola", action: "Logged in", severity: "Low" },
+  { id: "L4", time: "2026-07-24 18:05", user: "Manager - Grace", action: "End-of-day reconciliation approved, variance -KSh 50", severity: "Medium" },
+  { id: "L5", time: "2026-07-24 16:10", user: "Ann Wanjiru", action: "Issued refund on R-1020", severity: "High" },
+  { id: "L6", time: "2026-07-24 09:15", user: "Owner", action: "Edited inventory: Sanitizer 1L stock adjusted", severity: "Medium" },
+  { id: "L7", time: "2026-07-23 20:41", user: "Brenda Achola", action: "Logged out", severity: "Low" },
 ];
-
 const REVENUE_TREND = [
   { day: "Mon", value: 38200 }, { day: "Tue", value: 41500 }, { day: "Wed", value: 35800 },
   { day: "Thu", value: 47200 }, { day: "Fri", value: 58900 }, { day: "Sat", value: 71400 }, { day: "Sun", value: 52600 },
 ];
 
-const SAMPLE_COLLECTIONS = {
-  barbers: SAMPLE_BARBERS, services: SAMPLE_SERVICES, customers: SAMPLE_CUSTOMERS,
-  appointments: SAMPLE_APPOINTMENTS, sales: SAMPLE_SALES, inventory: SAMPLE_INVENTORY,
-  suppliers: SAMPLE_SUPPLIERS, expenses: SAMPLE_EXPENSES, auditLog: SAMPLE_AUDIT,
-};
-const DATA_COLLECTIONS = Object.keys(SAMPLE_COLLECTIONS);
+/* ============================================================
+   GENERIC DATA TABLE  (search + filter + sort, used everywhere)
+   ============================================================ */
+function mountDataTable(container, opts) {
+  const state = { search: "", filters: {}, sort: opts.defaultSort || { key: opts.columns[0].key, dir: "asc" } };
 
-async function loadSampleData() {
-  const batch = writeBatch(db);
-  Object.entries(SAMPLE_COLLECTIONS).forEach(([coll, rows]) => {
-    rows.forEach((row) => {
-      const ref = doc(collection(db, coll));
-      batch.set(ref, { ...row, sample: true, createdAt: serverTimestamp() });
-    });
-  });
-  await batch.commit();
-}
-
-async function clearSampleData() {
-  for (const coll of DATA_COLLECTIONS) {
-    const q = query(collection(db, coll), where("sample", "==", true));
-    const snap = await getDocs(q);
-    if (snap.docs.length === 0) continue;
-    const batch = writeBatch(db);
-    snap.docs.forEach((d) => batch.delete(d.ref));
-    await batch.commit();
-  }
-}
-
-async function getCollectionCounts() {
-  const counts = {};
-  for (const coll of DATA_COLLECTIONS) {
-    const snap = await getDocs(collection(db, coll));
-    let sample = 0, real = 0;
-    snap.docs.forEach((d) => (d.data().sample ? sample++ : real++));
-    counts[coll] = { sample, real, total: snap.docs.length };
-  }
-  return counts;
-}
-
-// Live-subscribes to a Firestore collection for use in a page component.
-function useCollectionData(name) {
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    setLoading(true);
-    const unsub = onSnapshot(collection(db, name), (snap) => {
-      setRows(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      setLoading(false);
-    }, () => setLoading(false));
-    return () => unsub();
-  }, [name]);
-  return [rows, loading];
-}
-
-/* ---------------------------------- SMALL UI PARTS ---------------------------------- */
-function StripeMark({ size = 30 }) {
-  return (
-    <div
-      style={{
-        width: size, height: size, borderRadius: "999px", position: "relative", overflow: "hidden",
-        background: `repeating-linear-gradient(45deg, ${C.red} 0 6px, ${C.white} 6px 12px, ${C.blue} 12px 18px)`,
-        boxShadow: "inset 0 0 0 2px rgba(0,0,0,0.25)",
-        flexShrink: 0,
-      }}
-    />
-  );
-}
-
-function Pill({ children, tone = "neutral" }) {
-  const tones = {
-    neutral: { bg: "#E7E4DA", fg: C.textDim },
-    good: { bg: "#E1EBE3", fg: C.green },
-    warn: { bg: "#F3E6CF", fg: C.gold },
-    bad: { bg: "#F3DEDB", fg: C.redDeep },
-    info: { bg: "#DEE5EC", fg: C.blue },
-  };
-  const map = {
-    Active: "good", Confirmed: "info", Completed: "good", "In Progress": "warn",
-    "No-show": "bad", Cancelled: "bad", "On Leave": "warn", OK: "good", Low: "warn",
-    Critical: "bad", VIP: "info", Standard: "neutral", New: "warn",
-    High: "bad", Medium: "warn", Low_sev: "neutral", Inactive: "neutral",
-    admin: "info", staff: "neutral",
-  };
-  const t = tones[map[children] || tone] || tones.neutral;
-  return (
-    <span style={{
-      background: t.bg, color: t.fg, fontFamily: FONT_BODY, fontSize: "11.5px", fontWeight: 600,
-      padding: "3px 9px", borderRadius: "999px", whiteSpace: "nowrap", letterSpacing: "0.2px",
-    }}>{children}</span>
-  );
-}
-
-function StatCard({ label, value, sub, icon: Icon, accent = C.red }) {
-  return (
-    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: "10px", padding: "16px 18px", flex: 1, minWidth: "180px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-        <span style={{ fontFamily: FONT_BODY, fontSize: "12px", color: C.textDim, fontWeight: 600, letterSpacing: "0.3px", textTransform: "uppercase" }}>{label}</span>
-        <Icon size={16} color={accent} />
+  container.innerHTML = `
+    <div class="card table-card">
+      <div class="controls-bar">
+        <div class="search-wrap">${ICONS.search}<input class="search-input" placeholder="Search..." /></div>
+        ${(opts.filters || []).map((f) => `
+          <select class="filter-select" data-key="${f.key}">
+            <option value="All">${escapeHtml(f.label)}: All</option>
+            ${f.options.map((o) => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join("")}
+          </select>`).join("")}
+        <span class="count-label"></span>
       </div>
-      <div style={{ fontFamily: FONT_MONO, fontSize: "24px", color: C.text, fontWeight: 600 }}>{value}</div>
-      {sub && <div style={{ fontFamily: FONT_BODY, fontSize: "12px", color: C.textDim, marginTop: "4px" }}>{sub}</div>}
-    </div>
-  );
-}
-
-function SectionHeader({ eyebrow, title, action }) {
-  return (
-    <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "10px" }}>
-      <div>
-        <div style={{ fontFamily: FONT_BODY, fontSize: "11.5px", color: C.red, fontWeight: 700, letterSpacing: "1.2px", textTransform: "uppercase", marginBottom: "4px" }}>{eyebrow}</div>
-        <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: "28px", color: C.text, margin: 0, fontWeight: 600 }}>{title}</h1>
-      </div>
-      {action}
-    </div>
-  );
-}
-
-function LoadingBlock({ label = "Loading…" }) {
-  return (
-    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: "10px", padding: "34px", textAlign: "center", color: C.textDim, fontFamily: FONT_BODY, fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-      <Loader2 size={15} className="spin" /> {label}
-    </div>
-  );
-}
-
-function EmptyState({ label, isAdmin }) {
-  return (
-    <div style={{ background: C.card, border: `1px dashed ${C.line}`, borderRadius: "10px", padding: "34px", textAlign: "center" }}>
-      <Inbox size={20} color={C.textDim} style={{ marginBottom: "8px" }} />
-      <div style={{ fontFamily: FONT_BODY, fontSize: "13px", color: C.textDim, marginBottom: "4px" }}>{label}</div>
-      {isAdmin && <div style={{ fontFamily: FONT_BODY, fontSize: "12px", color: C.textDim }}>Add one above, or load ready-made sample data from Settings.</div>}
-    </div>
-  );
-}
-
-/* ---------------------------------- DATA TABLE (filters + sorting everywhere) ---------------------------------- */
-function DataTable({ columns, rows, searchKeys, filters = [], defaultSort }) {
-  const [search, setSearch] = useState("");
-  const [filterState, setFilterState] = useState({});
-  const [sort, setSort] = useState(defaultSort || { key: columns[0].key, dir: "asc" });
-
-  const filtered = useMemo(() => {
-    let out = rows;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      out = out.filter((r) => searchKeys.some((k) => String(r[k] ?? "").toLowerCase().includes(q)));
-    }
-    Object.entries(filterState).forEach(([key, val]) => {
-      if (val && val !== "All") out = out.filter((r) => String(r[key]) === val);
-    });
-    return out;
-  }, [rows, search, filterState, searchKeys]);
-
-  const sorted = useMemo(() => {
-    const arr = [...filtered];
-    arr.sort((a, b) => {
-      const av = a[sort.key], bv = b[sort.key];
-      const an = parseFloat(String(av).replace(/[^0-9.-]/g, ""));
-      const bn = parseFloat(String(bv).replace(/[^0-9.-]/g, ""));
-      let cmp;
-      if (!isNaN(an) && !isNaN(bn) && String(av).match(/[0-9]/)) cmp = an - bn;
-      else cmp = String(av ?? "").localeCompare(String(bv ?? ""));
-      return sort.dir === "asc" ? cmp : -cmp;
-    });
-    return arr;
-  }, [filtered, sort]);
-
-  const toggleSort = (key) => {
-    setSort((s) => (s.key === key ? { key, dir: s.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" }));
-  };
-
-  return (
-    <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: "10px", overflow: "hidden" }}>
-      {/* controls */}
-      <div style={{ display: "flex", gap: "10px", alignItems: "center", padding: "14px 16px", borderBottom: `1px solid ${C.line}`, flexWrap: "wrap" }}>
-        <div style={{ position: "relative", flex: "1 1 200px", minWidth: "180px" }}>
-          <Search size={14} color={C.textDim} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)" }} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search..."
-            style={{
-              width: "100%", fontFamily: FONT_BODY, fontSize: "13px", padding: "8px 10px 8px 30px",
-              border: `1px solid ${C.line}`, borderRadius: "7px", background: C.paper, color: C.text, outline: "none", boxSizing: "border-box",
-            }}
-          />
-        </div>
-        {filters.map((f) => (
-          <select
-            key={f.key}
-            value={filterState[f.key] || "All"}
-            onChange={(e) => setFilterState((s) => ({ ...s, [f.key]: e.target.value }))}
-            style={{
-              fontFamily: FONT_BODY, fontSize: "12.5px", padding: "8px 10px", border: `1px solid ${C.line}`,
-              borderRadius: "7px", background: C.paper, color: C.text, outline: "none", cursor: "pointer",
-            }}
-          >
-            <option value="All">{f.label}: All</option>
-            {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
-          </select>
-        ))}
-        <span style={{ fontFamily: FONT_MONO, fontSize: "11.5px", color: C.textDim, marginLeft: "auto" }}>{sorted.length} of {rows.length}</span>
-      </div>
-
-      {/* table */}
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "640px" }}>
-          <thead>
-            <tr>
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  onClick={() => toggleSort(col.key)}
-                  style={{
-                    textAlign: col.align || "left", padding: "10px 16px", cursor: "pointer", userSelect: "none",
-                    fontFamily: FONT_BODY, fontSize: "11px", fontWeight: 700, color: C.textDim, letterSpacing: "0.5px",
-                    textTransform: "uppercase", borderBottom: `1px solid ${C.line}`, whiteSpace: "nowrap", background: C.paperDim,
-                  }}
-                >
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", justifyContent: col.align === "right" ? "flex-end" : "flex-start" }}>
-                    {col.label}
-                    {sort.key === col.key ? (sort.dir === "asc" ? <ArrowUp size={11} /> : <ArrowDown size={11} />) : <ArrowUpDown size={11} opacity={0.35} />}
-                  </span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((row, i) => (
-              <tr key={row.id || i} style={{ borderBottom: `1px solid ${C.line}` }}>
-                {columns.map((col) => (
-                  <td key={col.key} style={{
-                    padding: "11px 16px", fontFamily: col.mono ? FONT_MONO : FONT_BODY, fontSize: "13px",
-                    color: C.text, textAlign: col.align || "left", whiteSpace: "nowrap",
-                  }}>
-                    {col.render ? col.render(row) : row[col.key]}
-                  </td>
-                ))}
-              </tr>
-            ))}
-            {sorted.length === 0 && (
-              <tr><td colSpan={columns.length} style={{ padding: "28px", textAlign: "center", fontFamily: FONT_BODY, color: C.textDim, fontSize: "13px" }}>
-                Nothing matches this filter. Adjust the search or filters above.
-              </td></tr>
-            )}
-          </tbody>
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            ${opts.columns.map((c) => `<th data-key="${c.key}" style="text-align:${c.align || "left"}">${escapeHtml(c.label)}<span class="sort-ic"></span></th>`).join("")}
+            ${opts.rowActions ? "<th>Actions</th>" : ""}
+          </tr></thead>
+          <tbody></tbody>
         </table>
       </div>
-    </div>
-  );
-}
+    </div>`;
 
-/* ---------------------------------- GENERIC "ADD RECORD" MODAL ---------------------------------- */
-const ENTITY_CONFIGS = {
-  barbers: {
-    title: "Add barber",
-    fields: [
-      { key: "name", label: "Full name", type: "text" },
-      { key: "specialty", label: "Specialty", type: "text" },
-      { key: "status", label: "Status", type: "select", options: ["Active", "On Leave"] },
-    ],
-    defaults: { customers: 0, revenue: 0, commission: 0, tips: 0, rating: 5.0, attendance: "100%" },
-  },
-  services: {
-    title: "New service",
-    fields: [
-      { key: "name", label: "Service name", type: "text" },
-      { key: "category", label: "Category", type: "text" },
-      { key: "price", label: "Price (KSh)", type: "number" },
-      { key: "duration", label: "Duration (minutes)", type: "number" },
-      { key: "commission", label: "Commission (e.g. 30%)", type: "text" },
-      { key: "status", label: "Status", type: "select", options: ["Active", "Inactive"] },
-    ],
-    defaults: {},
-  },
-  customers: {
-    title: "New customer",
-    fields: [
-      { key: "name", label: "Full name", type: "text" },
-      { key: "phone", label: "Phone", type: "text" },
-      { key: "preferredBarber", label: "Preferred barber", type: "text" },
-      { key: "membership", label: "Membership", type: "select", options: ["New", "Standard", "VIP"] },
-    ],
-    defaults: { visits: 0, spend: 0, lastVisit: "—" },
-  },
-  appointments: {
-    title: "New appointment",
-    fields: [
-      { key: "time", label: "Time (e.g. 14:30)", type: "text" },
-      { key: "customer", label: "Customer", type: "text" },
-      { key: "barber", label: "Barber", type: "text" },
-      { key: "service", label: "Service", type: "text" },
-      { key: "type", label: "Type", type: "select", options: ["Booking", "Walk-in"] },
-      { key: "status", label: "Status", type: "select", options: ["Confirmed", "In Progress", "Completed", "No-show", "Cancelled"] },
-    ],
-    defaults: {},
-  },
-  inventory: {
-    title: "Receive stock",
-    fields: [
-      { key: "name", label: "Item", type: "text" },
-      { key: "category", label: "Category", type: "text" },
-      { key: "stock", label: "In stock", type: "number" },
-      { key: "reorder", label: "Reorder at", type: "number" },
-      { key: "unitCost", label: "Unit cost (KSh)", type: "number" },
-      { key: "supplier", label: "Supplier", type: "text" },
-      { key: "status", label: "Status", type: "select", options: ["OK", "Low", "Critical"] },
-    ],
-    defaults: {},
-  },
-  suppliers: {
-    title: "Add supplier",
-    fields: [
-      { key: "name", label: "Supplier name", type: "text" },
-      { key: "contact", label: "Contact", type: "text" },
-      { key: "products", label: "Products supplied", type: "text" },
-      { key: "outstanding", label: "Outstanding balance (KSh)", type: "number" },
-    ],
-    defaults: { lastPayment: "—" },
-  },
-  expenses: {
-    title: "Log expense",
-    fields: [
-      { key: "date", label: "Date (YYYY-MM-DD)", type: "text" },
-      { key: "category", label: "Category", type: "text" },
-      { key: "desc", label: "Description", type: "text" },
-      { key: "amount", label: "Amount (KSh)", type: "number" },
-      { key: "approvedBy", label: "Approved by", type: "text" },
-    ],
-    defaults: {},
-  },
-};
+  const searchInput = container.querySelector(".search-input");
+  const tbody = container.querySelector("tbody");
+  const countLabel = container.querySelector(".count-label");
+  const ths = container.querySelectorAll("th[data-key]");
 
-function AddRecordModal({ collectionName, onClose }) {
-  const config = ENTITY_CONFIGS[collectionName];
-  const initial = {};
-  config.fields.forEach((f) => { initial[f.key] = f.type === "select" ? f.options[0] : ""; });
-  const [values, setValues] = useState(initial);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  function getRows() { return typeof opts.rows === "function" ? opts.rows() : opts.rows; }
 
-  const setVal = (k, v) => setValues((s) => ({ ...s, [k]: v }));
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setBusy(true); setError("");
-    try {
-      const payload = { ...config.defaults };
-      config.fields.forEach((f) => {
-        let v = values[f.key];
-        if (f.type === "number") v = v === "" ? 0 : parseFloat(v);
-        payload[f.key] = v;
-      });
-      payload.sample = false;
-      payload.createdAt = serverTimestamp();
-      const ref = doc(collection(db, collectionName));
-      await setDoc(ref, payload);
-      const label = payload.name || payload.desc || payload.customer || "record";
-      await logAudit(`Added ${collectionName.slice(0, -1)}: ${label}`, "Low");
-      onClose(true);
-    } catch (err) {
-      setError(err && err.message ? err.message : "Something went wrong. Please try again.");
-    } finally {
-      setBusy(false);
+  function computeRows() {
+    let rows = getRows();
+    if (state.search.trim()) {
+      const q = state.search.toLowerCase();
+      rows = rows.filter((r) => opts.searchKeys.some((k) => String(r[k] ?? "").toLowerCase().includes(q)));
     }
-  };
+    Object.entries(state.filters).forEach(([k, v]) => { if (v && v !== "All") rows = rows.filter((r) => String(r[k]) === v); });
+    rows = [...rows].sort((a, b) => {
+      const av = a[state.sort.key], bv = b[state.sort.key];
+      const an = parseFloat(String(av).replace(/[^0-9.-]/g, "")), bn = parseFloat(String(bv).replace(/[^0-9.-]/g, ""));
+      let cmp;
+      if (!isNaN(an) && !isNaN(bn) && String(av).match(/[0-9]/)) cmp = an - bn; else cmp = String(av).localeCompare(String(bv));
+      return state.sort.dir === "asc" ? cmp : -cmp;
+    });
+    return rows;
+  }
 
-  return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(21,23,28,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: "16px" }}>
-      <div style={{ background: C.card, borderRadius: "12px", padding: "24px", width: "100%", maxWidth: "420px", border: `1px solid ${C.line}`, maxHeight: "90vh", overflowY: "auto" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-          <div style={{ fontFamily: FONT_DISPLAY, fontSize: "17px", fontWeight: 600, color: C.text }}>{config.title}</div>
-          <button onClick={() => onClose(false)} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><X size={18} color={C.textDim} /></button>
-        </div>
-        <ErrorNote message={error} />
-        <form onSubmit={submit}>
-          {config.fields.map((f) => (
-            f.type === "select" ? (
-              <div key={f.key} style={{ marginBottom: "14px" }}>
-                <label style={{ display: "block", fontSize: "11.5px", fontWeight: 600, color: C.textDim, marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.4px" }}>{f.label}</label>
-                <select value={values[f.key]} onChange={(e) => setVal(f.key, e.target.value)} style={{ width: "100%", fontFamily: FONT_BODY, fontSize: "13.5px", padding: "10px 12px", border: `1px solid ${C.line}`, borderRadius: "8px", background: C.paper, color: C.text, outline: "none" }}>
-                  {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </div>
-            ) : (
-              <Field key={f.key} label={f.label} type={f.type === "number" ? "number" : "text"} value={values[f.key]} onChange={(e) => setVal(f.key, e.target.value)} />
-            )
-          ))}
-          <PrimaryButton type="submit" disabled={busy}>
-            {busy ? <Loader2 size={15} className="spin" /> : <Plus size={15} />} Save
-          </PrimaryButton>
-        </form>
-      </div>
-    </div>
-  );
+  function render() {
+    const rows = computeRows();
+    countLabel.textContent = `${rows.length} of ${getRows().length}`;
+    ths.forEach((th) => {
+      const ic = th.querySelector(".sort-ic");
+      ic.textContent = state.sort.key === th.dataset.key ? (state.sort.dir === "asc" ? " ▲" : " ▼") : " ↕";
+    });
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="${opts.columns.length + (opts.rowActions ? 1 : 0)}" class="empty-row">Nothing matches this filter. Adjust the search or filters above.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map((r) => `<tr>
+        ${opts.columns.map((c) => `<td style="text-align:${c.align || "left"}" class="${c.mono ? "mono" : ""}">${c.render ? c.render(r) : escapeHtml(r[c.key] ?? "")}</td>`).join("")}
+        ${opts.rowActions ? `<td class="row-actions">${opts.rowActions(r)}</td>` : ""}
+      </tr>`).join("");
+  }
+
+  searchInput.addEventListener("input", (e) => { state.search = e.target.value; render(); });
+  container.querySelectorAll(".filter-select").forEach((sel) => {
+    sel.addEventListener("change", () => { state.filters[sel.dataset.key] = sel.value; render(); });
+  });
+  ths.forEach((th) => {
+    th.addEventListener("click", () => {
+      const key = th.dataset.key;
+      state.sort = state.sort.key === key ? { key, dir: state.sort.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" };
+      render();
+    });
+  });
+  if (opts.onMount) opts.onMount(container, render);
+  render();
+  return { refresh: render };
 }
 
-/* ---------------------------------- PAGES ---------------------------------- */
-function Dashboard({ isAdmin }) {
-  const [sales, salesLoading] = useCollectionData("sales");
-  const [appointments] = useCollectionData("appointments");
-  const [inventory] = useCollectionData("inventory");
-  const [barbers] = useCollectionData("barbers");
+/* ============================================================
+   PAGE RENDERERS
+   ============================================================ */
+function sectionHeader(eyebrow, title, actionHtml) {
+  return `<div class="section-header">
+      <div><div class="eyebrow">${escapeHtml(eyebrow)}</div><h1 class="h1">${escapeHtml(title)}</h1></div>
+      ${actionHtml || ""}
+    </div>`;
+}
+function addBtn(label, id) { return `<button class="btn btn-primary" id="${id}">${ICONS.plus}${escapeHtml(label)}</button>`; }
 
-  const salesDates = [...new Set(sales.map((s) => s.date).filter(Boolean))].sort();
-  const latestDate = salesDates[salesDates.length - 1];
-  const latestSales = sales.filter((s) => s.date === latestDate);
-  const latestRevenue = latestSales.reduce((a, s) => a + (s.amount || 0), 0);
-  const maxRev = Math.max(1, ...REVENUE_TREND.map((r) => r.value));
-  const lowStock = inventory.filter((i) => i.status !== "OK");
-  const topBarber = barbers.length ? [...barbers].sort((a, b) => (b.revenue || 0) - (a.revenue || 0))[0] : null;
-
-  return (
-    <div>
-      <SectionHeader eyebrow="Overview" title="Dashboard" />
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "16px" }}>
-        <StatCard label={latestDate ? `Revenue · ${latestDate}` : "Revenue"} value={money(latestRevenue)} sub={latestDate ? `${latestSales.length} receipt${latestSales.length === 1 ? "" : "s"}` : "No sales recorded yet"} icon={Banknote} accent={C.red} />
-        <StatCard label="Appointments" value={appointments.length} sub={`${appointments.filter((a) => a.type === "Walk-in").length} walk-ins`} icon={CalendarCheck} accent={C.blue} />
-        <StatCard label="Top Barber" value={topBarber ? topBarber.name.split(" ")[0] + " " + (topBarber.name.split(" ")[1]?.[0] || "") + "." : "—"} sub={topBarber ? `${money(topBarber.revenue)} this month` : "No barbers yet"} icon={Star} accent={C.gold} />
-        <StatCard label="Low Stock Items" value={lowStock.length} sub="Needs reorder" icon={PackageX} accent={C.redDeep} />
-      </div>
-
-      <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
-        <div style={{ flex: "2 1 380px", background: C.card, border: `1px solid ${C.line}`, borderRadius: "10px", padding: "18px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <span style={{ fontFamily: FONT_DISPLAY, fontSize: "16px", fontWeight: 600, color: C.text }}>Revenue trend (illustrative)</span>
-            <span style={{ display: "flex", alignItems: "center", gap: "4px", fontFamily: FONT_MONO, fontSize: "12px", color: C.green }}><TrendingUp size={13} /> +12.4%</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: "14px", height: "150px" }}>
-            {REVENUE_TREND.map((r) => (
-              <div key={r.day} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
-                <div style={{ fontFamily: FONT_MONO, fontSize: "10.5px", color: C.textDim }}>{Math.round(r.value / 1000)}k</div>
-                <div style={{
-                  width: "100%", maxWidth: "34px", height: `${(r.value / maxRev) * 100}px`, borderRadius: "4px 4px 0 0",
-                  background: r.day === "Sat" ? C.red : C.blue,
-                }} />
-                <div style={{ fontFamily: FONT_BODY, fontSize: "11px", color: C.textDim }}>{r.day}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ flex: "1 1 260px", background: C.card, border: `1px solid ${C.line}`, borderRadius: "10px", padding: "18px" }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: "16px", fontWeight: 600, color: C.text }}>Stock alerts</span>
-          <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
-            {lowStock.length === 0 && <div style={{ fontFamily: FONT_BODY, fontSize: "12.5px", color: C.textDim }}>Nothing needs reordering right now.</div>}
-            {lowStock.map((i) => (
-              <div key={i.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "8px", borderBottom: `1px solid ${C.line}` }}>
-                <div>
-                  <div style={{ fontFamily: FONT_BODY, fontSize: "13px", color: C.text, fontWeight: 500 }}>{i.name}</div>
-                  <div style={{ fontFamily: FONT_MONO, fontSize: "11px", color: C.textDim }}>{i.stock} left · reorder at {i.reorder}</div>
-                </div>
-                <Pill>{i.status}</Pill>
-              </div>
-            ))}
-          </div>
+function renderDashboard(root) {
+  const todayRevenue = SALES.filter((s) => s.date === "2026-07-25").reduce((a, s) => a + s.amount, 0);
+  const lowStock = INVENTORY.filter((i) => i.status !== "OK");
+  const maxRev = Math.max(...REVENUE_TREND.map((r) => r.value));
+  root.innerHTML = `
+    ${sectionHeader("Today · 25 Jul 2026", "Dashboard")}
+    <div class="stat-grid">
+      <div class="card stat-card"><div class="stat-top"><span class="stat-label">Revenue Today</span></div><div class="stat-value">${money(todayRevenue)}</div><div class="stat-sub">5 receipts so far</div></div>
+      <div class="card stat-card"><div class="stat-top"><span class="stat-label">Appointments Today</span></div><div class="stat-value">${APPOINTMENTS.length}</div><div class="stat-sub">3 walk-ins</div></div>
+      <div class="card stat-card"><div class="stat-top"><span class="stat-label">Top Barber</span></div><div class="stat-value">Otieno M.</div><div class="stat-sub">KSh 186,400 this month</div></div>
+      <div class="card stat-card"><div class="stat-top"><span class="stat-label">Low Stock Items</span></div><div class="stat-value">${lowStock.length}</div><div class="stat-sub">Needs reorder</div></div>
+    </div>
+    <div class="dash-grid">
+      <div class="card chart-card">
+        <div class="chart-head"><span class="chart-title">Revenue this week</span><span class="chart-trend">▲ +12.4%</span></div>
+        <div class="bars">
+          ${REVENUE_TREND.map((r) => `<div class="bar-col"><div class="bar-val">${Math.round(r.value / 1000)}k</div>
+            <div class="bar ${r.day === "Sat" ? "peak" : ""}" style="height:${(r.value / maxRev) * 100}px;"></div>
+            <div class="bar-day">${r.day}</div></div>`).join("")}
         </div>
       </div>
-
-      {!salesLoading && sales.length === 0 && (
-        <div style={{ marginTop: "16px" }}>
-          <EmptyState label="No data yet — your dashboard will fill in as you use the app." isAdmin={isAdmin} />
+      <div class="card stock-card">
+        <span class="chart-title">Stock alerts</span>
+        <div style="margin-top:12px;">
+          ${lowStock.map((i) => `<div class="stock-row"><div><div class="stock-name">${escapeHtml(i.name)}</div><div class="stock-meta">${i.stock} left · reorder at ${i.reorder}</div></div>${pill(i.status)}</div>`).join("")}
         </div>
-      )}
-    </div>
-  );
+      </div>
+    </div>`;
 }
 
-function AppointmentsPage({ isAdmin }) {
-  const [rows, loading] = useCollectionData("appointments");
-  const [showModal, setShowModal] = useState(false);
-  const columns = [
-    { key: "time", label: "Time", mono: true },
-    { key: "customer", label: "Customer" },
-    { key: "barber", label: "Barber" },
-    { key: "service", label: "Service" },
-    { key: "type", label: "Type" },
-    { key: "status", label: "Status", render: (r) => <Pill>{r.status}</Pill> },
-  ];
-  return (
-    <div>
-      <SectionHeader eyebrow="Bookings & walk-ins" title="Appointments" action={<AddButton label="New appointment" onClick={() => setShowModal(true)} />} />
-      {loading ? <LoadingBlock /> : rows.length === 0 ? <EmptyState label="No appointments yet." isAdmin={isAdmin} /> : (
-        <DataTable
-          columns={columns}
-          rows={rows}
-          searchKeys={["customer", "barber", "service"]}
-          filters={[
-            { key: "status", label: "Status", options: ["Confirmed", "In Progress", "Completed", "No-show", "Cancelled"] },
-            { key: "type", label: "Type", options: ["Booking", "Walk-in"] },
-          ]}
-          defaultSort={{ key: "time", dir: "asc" }}
-        />
-      )}
-      {showModal && <AddRecordModal collectionName="appointments" onClose={() => setShowModal(false)} />}
-    </div>
-  );
+function renderAppointments(root) {
+  root.innerHTML = `${sectionHeader("Bookings & walk-ins", "Appointments", addBtn("New appointment", "add-appt"))}<div id="appt-table"></div>`;
+  document.getElementById("add-appt").onclick = () => toast("Appointment booking form goes here — hook to your Firestore 'appointments' collection.");
+  mountDataTable(document.getElementById("appt-table"), {
+    columns: [
+      { key: "time", label: "Time", mono: true },
+      { key: "customer", label: "Customer" }, { key: "barber", label: "Barber" }, { key: "service", label: "Service" },
+      { key: "type", label: "Type" }, { key: "status", label: "Status", render: (r) => pill(r.status) },
+    ],
+    rows: APPOINTMENTS, searchKeys: ["customer", "barber", "service"],
+    filters: [
+      { key: "status", label: "Status", options: ["Confirmed", "In Progress", "Completed", "No-show", "Cancelled"] },
+      { key: "barber", label: "Barber", options: [...new Set(APPOINTMENTS.map((a) => a.barber))] },
+      { key: "type", label: "Type", options: ["Booking", "Walk-in"] },
+    ],
+    defaultSort: { key: "time", dir: "asc" },
+  });
 }
 
-function POSPage({ profile }) {
-  const [services, servicesLoading] = useCollectionData("services");
-  const [sales, salesLoading] = useCollectionData("sales");
-  const [barbers] = useCollectionData("barbers");
-  const [cart, setCart] = useState([]);
-  const [barber, setBarber] = useState("");
-  const [method, setMethod] = useState("Cash");
-  const [customer, setCustomer] = useState("Walk-in");
-  const [charging, setCharging] = useState(false);
-  const total = cart.reduce((a, c) => a + (c.price || 0), 0);
+function renderPOS(root) {
+  root.innerHTML = `
+    ${sectionHeader("Point of sale", "Sales & checkout")}
+    <div class="pos-grid">
+      <div class="card pos-services">
+        <span class="chart-title">New sale</span>
+        <div class="service-grid" id="service-tiles">
+          ${SERVICES.filter((s) => s.status === "Active").slice(0, 8).map((s) => `<button class="service-tile" data-id="${s.id}"><div class="n">${escapeHtml(s.name)}</div><div class="p">${money(s.price)}</div></button>`).join("")}
+        </div>
+      </div>
+      <div class="ticket">
+        <div class="ticket-stripe"></div>
+        <span class="chart-title" style="color:#fff;">Current ticket</span>
+        <div class="ticket-lines" id="ticket-lines"><div class="ticket-empty">Tap a service to add it to the ticket.</div></div>
+        <div class="ticket-total"><span>Total</span><span id="ticket-total">KSh 0</span></div>
+        <button class="charge-btn" id="charge-btn">Charge KSh 0</button>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px;">Recent transactions</div>
+    <div id="sales-table"></div>`;
 
-  const columns = [
-    { key: "date", label: "Date", mono: true },
-    { key: "time", label: "Time", mono: true },
-    { key: "customer", label: "Customer" },
-    { key: "barber", label: "Barber" },
-    { key: "items", label: "Items" },
-    { key: "method", label: "Payment", render: (r) => <Pill tone="info">{r.method}</Pill> },
-    { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) },
-  ];
-
-  const charge = async () => {
+  let cart = [];
+  const linesEl = document.getElementById("ticket-lines");
+  const totalEl = document.getElementById("ticket-total");
+  const chargeBtn = document.getElementById("charge-btn");
+  function renderCart() {
+    const total = cart.reduce((a, c) => a + c.price, 0);
+    linesEl.innerHTML = cart.length === 0 ? `<div class="ticket-empty">Tap a service to add it to the ticket.</div>`
+      : cart.map((c) => `<div class="ticket-line"><span>${escapeHtml(c.name)}</span><span>${money(c.price)}</span></div>`).join("");
+    totalEl.textContent = money(total);
+    chargeBtn.textContent = `Charge ${money(total)}`;
+  }
+  document.querySelectorAll(".service-tile").forEach((btn) => {
+    btn.addEventListener("click", () => { cart.push(SERVICES.find((s) => s.id === btn.dataset.id)); renderCart(); });
+  });
+  chargeBtn.addEventListener("click", () => {
     if (cart.length === 0) return;
-    setCharging(true);
-    try {
-      const now = new Date();
-      const ref = doc(collection(db, "sales"));
-      await setDoc(ref, {
-        date: now.toISOString().slice(0, 10),
-        time: now.toTimeString().slice(0, 5),
-        customer: customer || "Walk-in",
-        barber: barber || "Unassigned",
-        items: cart.map((c) => c.name).join(", "),
-        amount: total,
-        method,
-        cashier: profile?.displayName || profile?.username || "Staff",
-        sample: false,
-        createdAt: serverTimestamp(),
-      });
-      await logAudit(`Recorded sale of ${money(total)} (${method})`, "Low");
-      setCart([]);
-      setCustomer("Walk-in");
-    } finally {
-      setCharging(false);
-    }
-  };
+    toast(`Charged ${money(cart.reduce((a, c) => a + c.price, 0))} — wire this to Firestore to save a real receipt.`, "good");
+    cart = []; renderCart();
+  });
 
-  return (
-    <div>
-      <SectionHeader eyebrow="Point of sale" title="Sales & checkout" />
-      <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", marginBottom: "20px" }}>
-        <div style={{ flex: "1 1 320px", background: C.card, border: `1px solid ${C.line}`, borderRadius: "10px", padding: "16px" }}>
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: "16px", fontWeight: 600 }}>New sale</span>
-          {servicesLoading ? <div style={{ marginTop: "12px" }}><LoadingBlock label="Loading services…" /></div> : services.filter((s) => s.status === "Active").length === 0 ? (
-            <div style={{ marginTop: "12px", fontSize: "12.5px", color: C.textDim }}>No active services yet — add some on the Services page.</div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "12px" }}>
-              {services.filter((s) => s.status === "Active").map((s) => (
-                <button key={s.id} onClick={() => setCart((c) => [...c, s])}
-                  style={{
-                    textAlign: "left", padding: "9px 10px", border: `1px solid ${C.line}`, borderRadius: "7px",
-                    background: C.paper, cursor: "pointer", fontFamily: FONT_BODY,
-                  }}>
-                  <div style={{ fontSize: "12.5px", color: C.text, fontWeight: 500 }}>{s.name}</div>
-                  <div style={{ fontSize: "11.5px", color: C.textDim, fontFamily: FONT_MONO }}>{money(s.price)}</div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div style={{ flex: "1 1 260px", background: C.ink, borderRadius: "10px", padding: "18px", color: C.white, position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "5px", background: `repeating-linear-gradient(90deg, ${C.red} 0 14px, ${C.white} 14px 20px, ${C.blue} 20px 34px)` }} />
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: "16px", fontWeight: 600 }}>Current ticket</span>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px" }}>
-            <input value={customer} onChange={(e) => setCustomer(e.target.value)} placeholder="Customer name" style={{ fontFamily: FONT_BODY, fontSize: "12.5px", padding: "7px 9px", borderRadius: "6px", border: "1px solid #333", background: "#1F222A", color: C.white, outline: "none" }} />
-            <select value={barber} onChange={(e) => setBarber(e.target.value)} style={{ fontFamily: FONT_BODY, fontSize: "12.5px", padding: "7px 9px", borderRadius: "6px", border: "1px solid #333", background: "#1F222A", color: C.white, outline: "none" }}>
-              <option value="">Select barber…</option>
-              {barbers.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
-            </select>
-            <select value={method} onChange={(e) => setMethod(e.target.value)} style={{ fontFamily: FONT_BODY, fontSize: "12.5px", padding: "7px 9px", borderRadius: "6px", border: "1px solid #333", background: "#1F222A", color: C.white, outline: "none" }}>
-              {["Cash", "M-Pesa", "Card", "Mixed"].map((m) => <option key={m} value={m}>{m}</option>)}
-            </select>
-          </div>
-
-          <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", gap: "6px", minHeight: "40px" }}>
-            {cart.length === 0 && <div style={{ fontFamily: FONT_BODY, fontSize: "12.5px", color: "#9A9CA6", opacity: 0.6 }}>Tap a service to add it to the ticket.</div>}
-            {cart.map((c, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", fontFamily: FONT_MONO, fontSize: "12.5px" }}>
-                <span>{c.name}</span><span>{money(c.price)}</span>
-              </div>
-            ))}
-          </div>
-          <div style={{ borderTop: "1px solid #333", marginTop: "12px", paddingTop: "12px", display: "flex", justifyContent: "space-between", fontFamily: FONT_MONO, fontSize: "18px", fontWeight: 600 }}>
-            <span>Total</span><span>{money(total)}</span>
-          </div>
-          <button onClick={charge} disabled={cart.length === 0 || charging} style={{
-            marginTop: "14px", width: "100%", padding: "10px", borderRadius: "7px", border: "none",
-            background: cart.length === 0 || charging ? C.textDim : C.red, color: C.white, fontFamily: FONT_BODY,
-            fontWeight: 600, fontSize: "13px", cursor: cart.length === 0 || charging ? "default" : "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-          }}>{charging ? <Loader2 size={14} className="spin" /> : null} Charge {money(total)}</button>
-        </div>
-      </div>
-
-      <div style={{ fontFamily: FONT_BODY, fontSize: "13px", fontWeight: 600, color: C.text, marginBottom: "10px" }}>Recent transactions</div>
-      {salesLoading ? <LoadingBlock /> : sales.length === 0 ? <EmptyState label="No sales recorded yet." isAdmin={true} /> : (
-        <DataTable
-          columns={columns}
-          rows={sales}
-          searchKeys={["customer", "barber", "items"]}
-          filters={[
-            { key: "method", label: "Payment", options: ["Cash", "M-Pesa", "Card", "Mixed"] },
-          ]}
-          defaultSort={{ key: "date", dir: "desc" }}
-        />
-      )}
-    </div>
-  );
+  mountDataTable(document.getElementById("sales-table"), {
+    columns: [
+      { key: "id", label: "Receipt", mono: true }, { key: "date", label: "Date", mono: true }, { key: "time", label: "Time", mono: true },
+      { key: "customer", label: "Customer" }, { key: "barber", label: "Barber" }, { key: "items", label: "Items" },
+      { key: "method", label: "Payment", render: (r) => pill(r.method, { Cash: "neutral", "M-Pesa": "info", Card: "info", Mixed: "warn" }) },
+      { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) },
+    ],
+    rows: SALES, searchKeys: ["id", "customer", "barber", "items"],
+    filters: [
+      { key: "method", label: "Payment", options: ["Cash", "M-Pesa", "Card", "Mixed"] },
+      { key: "barber", label: "Barber", options: [...new Set(SALES.map((s) => s.barber))] },
+      { key: "date", label: "Date", options: [...new Set(SALES.map((s) => s.date))] },
+    ],
+    defaultSort: { key: "id", dir: "desc" },
+  });
 }
 
-function CustomersPage({ isAdmin }) {
-  const [rows, loading] = useCollectionData("customers");
-  const [showModal, setShowModal] = useState(false);
-  const columns = [
-    { key: "name", label: "Customer" },
-    { key: "phone", label: "Phone", mono: true },
-    { key: "membership", label: "Membership", render: (r) => <Pill>{r.membership}</Pill> },
-    { key: "preferredBarber", label: "Preferred barber" },
-    { key: "visits", label: "Visits", align: "right" },
-    { key: "spend", label: "Lifetime spend", mono: true, align: "right", render: (r) => money(r.spend) },
-    { key: "lastVisit", label: "Last visit", mono: true },
-  ];
-  return (
-    <div>
-      <SectionHeader eyebrow="Client book" title="Customers" action={<AddButton label="New customer" onClick={() => setShowModal(true)} />} />
-      {loading ? <LoadingBlock /> : rows.length === 0 ? <EmptyState label="No customers yet." isAdmin={isAdmin} /> : (
-        <DataTable
-          columns={columns}
-          rows={rows}
-          searchKeys={["name", "phone"]}
-          filters={[{ key: "membership", label: "Membership", options: ["VIP", "Standard", "New"] }]}
-          defaultSort={{ key: "spend", dir: "desc" }}
-        />
-      )}
-      {showModal && <AddRecordModal collectionName="customers" onClose={() => setShowModal(false)} />}
-    </div>
-  );
+function renderCustomers(root) {
+  root.innerHTML = `${sectionHeader("Client book", "Customers", addBtn("New customer", "add-cust"))}<div id="cust-table"></div>`;
+  document.getElementById("add-cust").onclick = () => toast("Customer form goes here — hook to your Firestore 'customers' collection.");
+  mountDataTable(document.getElementById("cust-table"), {
+    columns: [
+      { key: "name", label: "Customer" }, { key: "phone", label: "Phone", mono: true },
+      { key: "membership", label: "Membership", render: (r) => pill(r.membership) },
+      { key: "preferredBarber", label: "Preferred barber" }, { key: "visits", label: "Visits", align: "right" },
+      { key: "spend", label: "Lifetime spend", mono: true, align: "right", render: (r) => money(r.spend) },
+      { key: "lastVisit", label: "Last visit", mono: true },
+    ],
+    rows: CUSTOMERS, searchKeys: ["name", "phone"],
+    filters: [
+      { key: "membership", label: "Membership", options: ["VIP", "Standard", "New"] },
+      { key: "preferredBarber", label: "Barber", options: [...new Set(CUSTOMERS.map((c) => c.preferredBarber))] },
+    ],
+    defaultSort: { key: "spend", dir: "desc" },
+  });
 }
 
-function BarbersPage({ isAdmin }) {
-  const [rows, loading] = useCollectionData("barbers");
-  const [showModal, setShowModal] = useState(false);
-  const columns = [
-    { key: "name", label: "Barber" },
-    { key: "specialty", label: "Specialty" },
-    { key: "status", label: "Status", render: (r) => <Pill>{r.status}</Pill> },
-    { key: "customers", label: "Customers", align: "right" },
-    { key: "revenue", label: "Revenue (mo.)", mono: true, align: "right", render: (r) => money(r.revenue) },
-    { key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission) },
-    { key: "tips", label: "Tips", mono: true, align: "right", render: (r) => money(r.tips) },
-    { key: "rating", label: "Rating", align: "right", render: (r) => `★ ${r.rating}` },
-    { key: "attendance", label: "Attendance", align: "right" },
-  ];
-  return (
-    <div>
-      <SectionHeader eyebrow="Team performance" title="Barbers" action={<AddButton label="Add barber" onClick={() => setShowModal(true)} />} />
-      {loading ? <LoadingBlock /> : rows.length === 0 ? <EmptyState label="No barbers yet." isAdmin={isAdmin} /> : (
-        <DataTable
-          columns={columns}
-          rows={rows}
-          searchKeys={["name", "specialty"]}
-          filters={[{ key: "status", label: "Status", options: ["Active", "On Leave"] }]}
-          defaultSort={{ key: "revenue", dir: "desc" }}
-        />
-      )}
-      {showModal && <AddRecordModal collectionName="barbers" onClose={() => setShowModal(false)} />}
-    </div>
-  );
+function renderBarbers(root) {
+  root.innerHTML = `${sectionHeader("Team performance", "Barbers", addBtn("Add barber", "add-barber"))}<div id="barber-table"></div>`;
+  document.getElementById("add-barber").onclick = () => toast("For staff logins, use Staff Management — this list is for the performance profile only.");
+  mountDataTable(document.getElementById("barber-table"), {
+    columns: [
+      { key: "name", label: "Barber" }, { key: "specialty", label: "Specialty" },
+      { key: "status", label: "Status", render: (r) => pill(r.status) }, { key: "customers", label: "Customers", align: "right" },
+      { key: "revenue", label: "Revenue (mo.)", mono: true, align: "right", render: (r) => money(r.revenue) },
+      { key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission) },
+      { key: "tips", label: "Tips", mono: true, align: "right", render: (r) => money(r.tips) },
+      { key: "rating", label: "Rating", align: "right", render: (r) => `★ ${r.rating}` },
+      { key: "attendance", label: "Attendance", align: "right" },
+    ],
+    rows: BARBERS, searchKeys: ["name", "specialty"],
+    filters: [{ key: "status", label: "Status", options: ["Active", "On Leave"] }],
+    defaultSort: { key: "revenue", dir: "desc" },
+  });
 }
 
-function ServicesPage({ isAdmin }) {
-  const [rows, loading] = useCollectionData("services");
-  const [showModal, setShowModal] = useState(false);
-  const columns = [
-    { key: "name", label: "Service" },
-    { key: "category", label: "Category" },
-    { key: "price", label: "Price", mono: true, align: "right", render: (r) => money(r.price) },
-    { key: "duration", label: "Duration", mono: true, align: "right", render: (r) => `${r.duration} min` },
-    { key: "commission", label: "Commission", align: "right" },
-    { key: "status", label: "Status", render: (r) => <Pill>{r.status}</Pill> },
-  ];
-  return (
-    <div>
-      <SectionHeader eyebrow="Price list" title="Services" action={<AddButton label="New service" onClick={() => setShowModal(true)} />} />
-      {loading ? <LoadingBlock /> : rows.length === 0 ? <EmptyState label="No services yet." isAdmin={isAdmin} /> : (
-        <DataTable
-          columns={columns}
-          rows={rows}
-          searchKeys={["name", "category"]}
-          filters={[{ key: "status", label: "Status", options: ["Active", "Inactive"] }]}
-          defaultSort={{ key: "price", dir: "desc" }}
-        />
-      )}
-      {showModal && <AddRecordModal collectionName="services" onClose={() => setShowModal(false)} />}
-    </div>
-  );
+function renderServices(root) {
+  root.innerHTML = `${sectionHeader("Price list", "Services", addBtn("New service", "add-service"))}<div id="service-table"></div>`;
+  document.getElementById("add-service").onclick = () => toast("Service form goes here — hook to your Firestore 'services' collection.");
+  mountDataTable(document.getElementById("service-table"), {
+    columns: [
+      { key: "name", label: "Service" }, { key: "category", label: "Category" },
+      { key: "price", label: "Price", mono: true, align: "right", render: (r) => money(r.price) },
+      { key: "duration", label: "Duration", mono: true, align: "right", render: (r) => `${r.duration} min` },
+      { key: "commission", label: "Commission", align: "right" }, { key: "status", label: "Status", render: (r) => pill(r.status) },
+    ],
+    rows: SERVICES, searchKeys: ["name", "category"],
+    filters: [
+      { key: "category", label: "Category", options: [...new Set(SERVICES.map((s) => s.category))] },
+      { key: "status", label: "Status", options: ["Active", "Inactive"] },
+    ],
+    defaultSort: { key: "price", dir: "desc" },
+  });
 }
 
-function InventoryPage({ isAdmin }) {
-  const [rows, loading] = useCollectionData("inventory");
-  const [showModal, setShowModal] = useState(false);
-  const columns = [
-    { key: "name", label: "Item" },
-    { key: "category", label: "Category" },
-    { key: "stock", label: "In stock", align: "right" },
-    { key: "reorder", label: "Reorder at", align: "right" },
-    { key: "unitCost", label: "Unit cost", mono: true, align: "right", render: (r) => money(r.unitCost) },
-    { key: "supplier", label: "Supplier" },
-    { key: "status", label: "Status", render: (r) => <Pill>{r.status}</Pill> },
-  ];
-  return (
-    <div>
-      <SectionHeader eyebrow="Stock control" title="Inventory" action={<AddButton label="Receive stock" onClick={() => setShowModal(true)} />} />
-      {loading ? <LoadingBlock /> : rows.length === 0 ? <EmptyState label="No inventory yet." isAdmin={isAdmin} /> : (
-        <DataTable
-          columns={columns}
-          rows={rows}
-          searchKeys={["name", "supplier"]}
-          filters={[{ key: "status", label: "Status", options: ["OK", "Low", "Critical"] }]}
-          defaultSort={{ key: "stock", dir: "asc" }}
-        />
-      )}
-      {showModal && <AddRecordModal collectionName="inventory" onClose={() => setShowModal(false)} />}
-    </div>
-  );
+function renderInventory(root) {
+  root.innerHTML = `${sectionHeader("Stock control", "Inventory", addBtn("Receive stock", "add-stock"))}<div id="inv-table"></div>`;
+  document.getElementById("add-stock").onclick = () => toast("Stock receipt form goes here — hook to your Firestore 'inventory' collection.");
+  mountDataTable(document.getElementById("inv-table"), {
+    columns: [
+      { key: "name", label: "Item" }, { key: "category", label: "Category" }, { key: "stock", label: "In stock", align: "right" },
+      { key: "reorder", label: "Reorder at", align: "right" },
+      { key: "unitCost", label: "Unit cost", mono: true, align: "right", render: (r) => money(r.unitCost) },
+      { key: "supplier", label: "Supplier" }, { key: "status", label: "Status", render: (r) => pill(r.status) },
+    ],
+    rows: INVENTORY, searchKeys: ["name", "supplier"],
+    filters: [
+      { key: "category", label: "Category", options: [...new Set(INVENTORY.map((i) => i.category))] },
+      { key: "status", label: "Status", options: ["OK", "Low", "Critical"] },
+    ],
+    defaultSort: { key: "stock", dir: "asc" },
+  });
 }
 
-function SuppliersPage({ isAdmin }) {
-  const [rows, loading] = useCollectionData("suppliers");
-  const [showModal, setShowModal] = useState(false);
-  const columns = [
-    { key: "name", label: "Supplier" },
-    { key: "contact", label: "Contact", mono: true },
-    { key: "products", label: "Products supplied" },
-    { key: "outstanding", label: "Outstanding", mono: true, align: "right", render: (r) => money(r.outstanding) },
-    { key: "lastPayment", label: "Last payment", mono: true },
-  ];
-  return (
-    <div>
-      <SectionHeader eyebrow="Vendors" title="Suppliers" action={<AddButton label="Add supplier" onClick={() => setShowModal(true)} />} />
-      {loading ? <LoadingBlock /> : rows.length === 0 ? <EmptyState label="No suppliers yet." isAdmin={isAdmin} /> : (
-        <DataTable columns={columns} rows={rows} searchKeys={["name", "products"]} filters={[]} defaultSort={{ key: "outstanding", dir: "desc" }} />
-      )}
-      {showModal && <AddRecordModal collectionName="suppliers" onClose={() => setShowModal(false)} />}
-    </div>
-  );
+function renderSuppliers(root) {
+  root.innerHTML = `${sectionHeader("Vendors", "Suppliers", addBtn("Add supplier", "add-sup"))}<div id="sup-table"></div>`;
+  document.getElementById("add-sup").onclick = () => toast("Supplier form goes here — hook to your Firestore 'suppliers' collection.");
+  mountDataTable(document.getElementById("sup-table"), {
+    columns: [
+      { key: "name", label: "Supplier" }, { key: "contact", label: "Contact", mono: true }, { key: "products", label: "Products supplied" },
+      { key: "outstanding", label: "Outstanding", mono: true, align: "right", render: (r) => money(r.outstanding) },
+      { key: "lastPayment", label: "Last payment", mono: true },
+    ],
+    rows: SUPPLIERS, searchKeys: ["name", "products"], filters: [], defaultSort: { key: "outstanding", dir: "desc" },
+  });
 }
 
-function ExpensesPage({ isAdmin }) {
-  const [rows, loading] = useCollectionData("expenses");
-  const [showModal, setShowModal] = useState(false);
-  const columns = [
-    { key: "date", label: "Date", mono: true },
-    { key: "category", label: "Category" },
-    { key: "desc", label: "Description" },
-    { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) },
-    { key: "approvedBy", label: "Approved by" },
-  ];
-  const totalMonth = rows.reduce((a, e) => a + (e.amount || 0), 0);
-  return (
-    <div>
-      <SectionHeader eyebrow={rows.length ? `Total logged · ${money(totalMonth)}` : "Expenses"} title="Expenses" action={<AddButton label="Log expense" onClick={() => setShowModal(true)} />} />
-      {loading ? <LoadingBlock /> : rows.length === 0 ? <EmptyState label="No expenses logged yet." isAdmin={isAdmin} /> : (
-        <DataTable
-          columns={columns}
-          rows={rows}
-          searchKeys={["desc", "category"]}
-          filters={[{ key: "category", label: "Category", options: [...new Set(rows.map((e) => e.category))] }]}
-          defaultSort={{ key: "date", dir: "desc" }}
-        />
-      )}
-      {showModal && <AddRecordModal collectionName="expenses" onClose={() => setShowModal(false)} />}
-    </div>
-  );
+function renderExpenses(root) {
+  const totalMonth = EXPENSES.reduce((a, e) => a + e.amount, 0);
+  root.innerHTML = `${sectionHeader(`Month to date · ${money(totalMonth)}`, "Expenses", addBtn("Log expense", "add-exp"))}<div id="exp-table"></div>`;
+  document.getElementById("add-exp").onclick = () => toast("Expense form goes here — hook to your Firestore 'expenses' collection.");
+  mountDataTable(document.getElementById("exp-table"), {
+    columns: [
+      { key: "date", label: "Date", mono: true }, { key: "category", label: "Category" }, { key: "desc", label: "Description" },
+      { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }, { key: "approvedBy", label: "Approved by" },
+    ],
+    rows: EXPENSES, searchKeys: ["desc", "category"],
+    filters: [
+      { key: "category", label: "Category", options: [...new Set(EXPENSES.map((e) => e.category))] },
+      { key: "approvedBy", label: "Approved by", options: [...new Set(EXPENSES.map((e) => e.approvedBy))] },
+    ],
+    defaultSort: { key: "date", dir: "desc" },
+  });
 }
 
-function PayrollPage({ isAdmin }) {
-  const [barbers, loading] = useCollectionData("barbers");
-  const rows = barbers.map((b) => ({
-    id: b.id, name: b.name, base: 15000, commission: b.commission || 0, tips: b.tips || 0,
-    deductions: 800, net: 15000 + (b.commission || 0) + (b.tips || 0) - 800,
-  }));
-  const columns = [
-    { key: "name", label: "Employee" },
-    { key: "base", label: "Base salary", mono: true, align: "right", render: (r) => money(r.base) },
-    { key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission) },
-    { key: "tips", label: "Tips", mono: true, align: "right", render: (r) => money(r.tips) },
-    { key: "deductions", label: "Deductions", mono: true, align: "right", render: (r) => money(r.deductions) },
-    { key: "net", label: "Net pay", mono: true, align: "right", render: (r) => money(r.net) },
-  ];
-  return (
-    <div>
-      <SectionHeader eyebrow="Pay run — computed from Barbers" title="Payroll" />
-      {loading ? <LoadingBlock /> : rows.length === 0 ? <EmptyState label="Add barbers first to see a payroll run." isAdmin={isAdmin} /> : (
-        <DataTable columns={columns} rows={rows} searchKeys={["name"]} filters={[]} defaultSort={{ key: "net", dir: "desc" }} />
-      )}
-    </div>
-  );
+function renderPayroll(root) {
+  const rows = BARBERS.map((b) => ({ id: b.id, name: b.name, base: 15000, commission: b.commission, tips: b.tips, deductions: 800, net: 15000 + b.commission + b.tips - 800 }));
+  root.innerHTML = `${sectionHeader("July 2026 pay run", "Payroll", addBtn("Run payroll", "run-payroll"))}<div id="payroll-table"></div>`;
+  document.getElementById("run-payroll").onclick = () => toast("Payroll run goes here — hook to your Firestore 'payroll' collection.");
+  mountDataTable(document.getElementById("payroll-table"), {
+    columns: [
+      { key: "name", label: "Employee" }, { key: "base", label: "Base salary", mono: true, align: "right", render: (r) => money(r.base) },
+      { key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission) },
+      { key: "tips", label: "Tips", mono: true, align: "right", render: (r) => money(r.tips) },
+      { key: "deductions", label: "Deductions", mono: true, align: "right", render: (r) => money(r.deductions) },
+      { key: "net", label: "Net pay", mono: true, align: "right", render: (r) => money(r.net) },
+    ],
+    rows, searchKeys: ["name"], filters: [], defaultSort: { key: "net", dir: "desc" },
+  });
 }
 
-function ReportsPage() {
-  const [barbers] = useCollectionData("barbers");
-  const [services] = useCollectionData("services");
-  const [customers] = useCollectionData("customers");
-  const [sales] = useCollectionData("sales");
-  const [report, setReport] = useState("barber");
-
+function renderReports(root) {
   const reports = {
-    barber: { columns: [{ key: "name", label: "Barber" }, { key: "revenue", label: "Revenue", mono: true, align: "right", render: (r) => money(r.revenue) }, { key: "customers", label: "Customers", align: "right" }], rows: barbers },
-    service: { columns: [{ key: "name", label: "Service" }, { key: "category", label: "Category" }, { key: "price", label: "Price", mono: true, align: "right", render: (r) => money(r.price) }], rows: services },
-    customer: { columns: [{ key: "name", label: "Customer" }, { key: "visits", label: "Visits", align: "right" }, { key: "spend", label: "Spend", mono: true, align: "right", render: (r) => money(r.spend) }], rows: customers },
-    payment: { columns: [{ key: "customer", label: "Customer" }, { key: "method", label: "Method", render: (r) => <Pill tone="info">{r.method}</Pill> }, { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }], rows: sales },
+    barber: { title: "Revenue by barber", cols: [{ key: "name", label: "Barber" }, { key: "revenue", label: "Revenue", mono: true, align: "right", render: (r) => money(r.revenue) }, { key: "customers", label: "Customers", align: "right" }], rows: BARBERS },
+    service: { title: "Revenue by service", cols: [{ key: "name", label: "Service" }, { key: "category", label: "Category" }, { key: "price", label: "Price", mono: true, align: "right", render: (r) => money(r.price) }], rows: SERVICES },
+    customer: { title: "Top spending customers", cols: [{ key: "name", label: "Customer" }, { key: "visits", label: "Visits", align: "right" }, { key: "spend", label: "Spend", mono: true, align: "right", render: (r) => money(r.spend) }], rows: CUSTOMERS },
+    payment: { title: "Sales by payment method", cols: [{ key: "id", label: "Receipt", mono: true }, { key: "method", label: "Method", render: (r) => pill(r.method, { Cash: "neutral", "M-Pesa": "info", Card: "info", Mixed: "warn" }) }, { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }], rows: SALES },
   };
-  const active = reports[report];
-  const tabs = [
-    { key: "barber", label: "By barber" }, { key: "service", label: "By service" },
-    { key: "customer", label: "By customer" }, { key: "payment", label: "By payment method" },
-  ];
-  return (
-    <div>
-      <SectionHeader eyebrow="Business intelligence" title="Reports" />
-      <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
-        {tabs.map((t) => (
-          <button key={t.key} onClick={() => setReport(t.key)} style={{
-            padding: "8px 14px", borderRadius: "999px", border: `1px solid ${report === t.key ? C.red : C.line}`,
-            background: report === t.key ? C.red : C.card, color: report === t.key ? C.white : C.text,
-            fontFamily: FONT_BODY, fontSize: "12.5px", fontWeight: 600, cursor: "pointer",
-          }}>{t.label}</button>
-        ))}
-      </div>
-      {active.rows.length === 0 ? <EmptyState label="Not enough data yet for this report." isAdmin={true} /> : (
-        <DataTable columns={active.columns} rows={active.rows} searchKeys={["name", "customer"]} filters={[]} defaultSort={{ key: active.columns[1].key, dir: "desc" }} />
-      )}
+  const tabs = [["barber", "By barber"], ["service", "By service"], ["customer", "By customer"], ["payment", "By payment method"]];
+  let active = "barber";
+  root.innerHTML = `${sectionHeader("Business intelligence", "Reports")}
+    <div class="report-tabs">${tabs.map(([k, l]) => `<button class="report-tab ${k === active ? "active" : ""}" data-k="${k}">${l}</button>`).join("")}</div>
+    <div id="report-table"></div>`;
+  function draw() {
+    root.querySelectorAll(".report-tab").forEach((b) => b.classList.toggle("active", b.dataset.k === active));
+    const r = reports[active];
+    mountDataTable(document.getElementById("report-table"), { columns: r.cols, rows: r.rows, searchKeys: ["name", "id"], filters: [], defaultSort: { key: r.cols[1].key, dir: "desc" } });
+  }
+  root.querySelectorAll(".report-tab").forEach((b) => b.addEventListener("click", () => { active = b.dataset.k; draw(); }));
+  draw();
+}
+
+function renderAudit(root) {
+  root.innerHTML = `${sectionHeader("Full accountability trail", "Audit log")}<div id="audit-table"></div>`;
+  mountDataTable(document.getElementById("audit-table"), {
+    columns: [
+      { key: "time", label: "Timestamp", mono: true }, { key: "user", label: "User" }, { key: "action", label: "Action" },
+      { key: "severity", label: "Severity", render: (r) => pill(r.severity) },
+    ],
+    rows: AUDIT, searchKeys: ["user", "action"],
+    filters: [
+      { key: "user", label: "User", options: [...new Set(AUDIT.map((a) => a.user))] },
+      { key: "severity", label: "Severity", options: ["High", "Medium", "Low"] },
+    ],
+    defaultSort: { key: "time", dir: "desc" },
+  });
+}
+
+/* ---------- Staff Management (the real Firebase-backed page) ---------- */
+let staffDocs = [];
+let staffUnsub = null;
+
+function renderStaff(root) {
+  root.innerHTML = `
+    ${sectionHeader("Accounts & access", "Staff Management", addBtn("Add staff account", "add-staff"))}
+    <div class="card" style="padding:12px 16px;margin-bottom:14px;font-size:12.5px;color:var(--text-dim);line-height:1.5;">
+      New accounts are created with a temporary password you set. Share it with the staff member yourself
+      (WhatsApp, SMS, in person) — it's shown once, right after creation. Deactivating an account blocks
+      that person from getting past sign-in immediately; it does not delete their history.
     </div>
-  );
-}
+    <div id="staff-table"></div>`;
+  document.getElementById("add-staff").onclick = openAddStaffModal;
 
-function AuditPage() {
-  const [rows, loading] = useCollectionData("auditLog");
-  const sorted = [...rows].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-  const columns = [
-    { key: "time", label: "Timestamp", mono: true },
-    { key: "user", label: "User" },
-    { key: "action", label: "Action" },
-    { key: "severity", label: "Severity", render: (r) => <Pill>{r.severity}</Pill> },
-  ];
-  return (
-    <div>
-      <SectionHeader eyebrow="Full accountability trail" title="Audit log" />
-      {loading ? <LoadingBlock /> : sorted.length === 0 ? <EmptyState label="No activity logged yet." isAdmin={true} /> : (
-        <DataTable
-          columns={columns}
-          rows={sorted}
-          searchKeys={["user", "action"]}
-          filters={[{ key: "severity", label: "Severity", options: ["High", "Medium", "Low"] }]}
-          defaultSort={{ key: "time", dir: "desc" }}
-        />
-      )}
-    </div>
-  );
-}
-
-function AddButton({ label, onClick }) {
-  return (
-    <button onClick={onClick} style={{
-      display: "flex", alignItems: "center", gap: "6px", padding: "9px 14px", borderRadius: "8px",
-      border: "none", background: C.red, color: C.white, fontFamily: FONT_BODY, fontWeight: 600,
-      fontSize: "12.5px", cursor: "pointer",
-    }}>
-      <Plus size={14} /> {label}
-    </button>
-  );
-}
-
-/* ---------------------------------- SETTINGS (admin only) ---------------------------------- */
-function SettingsPage() {
-  const [counts, setCounts] = useState(null);
-  const [loadingCounts, setLoadingCounts] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
-  const [note, setNote] = useState("");
-  const [businessName, setBusinessName] = useState("");
-  const [savingName, setSavingName] = useState(false);
-
-  const refreshCounts = async () => {
-    setLoadingCounts(true);
-    try {
-      setCounts(await getCollectionCounts());
-    } finally {
-      setLoadingCounts(false);
-    }
-  };
-
-  useEffect(() => {
-    refreshCounts();
-    getDoc(doc(db, "meta", "setup")).then((snap) => {
-      if (snap.exists()) setBusinessName(snap.data().businessName || "");
-    });
-  }, []);
-
-  const totalSample = counts ? Object.values(counts).reduce((a, c) => a + c.sample, 0) : 0;
-
-  const doLoadSample = async () => {
-    setBusy(true); setNote("");
-    try {
-      await loadSampleData();
-      await logAudit("Loaded sample/demo data", "Medium");
-      setNote("Sample data loaded across all sections.");
-      await refreshCounts();
-    } catch (e) {
-      setNote(e.message || "Something went wrong.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const doClearSample = async () => {
-    setBusy(true); setNote("");
-    try {
-      await clearSampleData();
-      await logAudit("Cleared sample/demo data", "High");
-      setNote("Sample data cleared. Anything you or your staff entered was left untouched.");
-      setConfirmText("");
-      await refreshCounts();
-    } catch (e) {
-      setNote(e.message || "Something went wrong.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const saveBusinessName = async () => {
-    setSavingName(true);
-    try {
-      await updateDoc(doc(db, "meta", "setup"), { businessName });
-    } finally {
-      setSavingName(false);
-    }
-  };
-
-  return (
-    <div>
-      <SectionHeader eyebrow="Configuration" title="Settings" />
-
-      <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: "10px", padding: "20px", marginBottom: "16px" }}>
-        <div style={{ fontFamily: FONT_DISPLAY, fontSize: "16px", fontWeight: 600, color: C.text, marginBottom: "12px" }}>Business name</div>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <input value={businessName} onChange={(e) => setBusinessName(e.target.value)} style={{ flex: "1 1 200px", fontFamily: FONT_BODY, fontSize: "13.5px", padding: "9px 12px", border: `1px solid ${C.line}`, borderRadius: "8px", background: C.paper, color: C.text, outline: "none" }} />
-          <button onClick={saveBusinessName} disabled={savingName} style={{ padding: "9px 16px", borderRadius: "8px", border: "none", background: C.red, color: C.white, fontFamily: FONT_BODY, fontWeight: 600, fontSize: "12.5px", cursor: "pointer" }}>{savingName ? "Saving…" : "Save"}</button>
-        </div>
-      </div>
-
-      <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: "10px", padding: "20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-          <Database size={16} color={C.text} />
-          <span style={{ fontFamily: FONT_DISPLAY, fontSize: "16px", fontWeight: 600, color: C.text }}>Sample data</span>
-        </div>
-        <div style={{ fontSize: "12.5px", color: C.textDim, marginBottom: "14px", lineHeight: 1.5 }}>
-          Load ready-made barbers, services, customers, appointments, sales, inventory, suppliers and expenses to explore the app. Sample records are tagged internally, so you can wipe just those with one click once you're ready to run with real data — anything you or your staff have entered yourselves is left untouched.
-        </div>
-
-        {note && <div style={{ background: "#DEE5EC", color: C.blue, borderRadius: "8px", padding: "10px 14px", fontSize: "12.5px", marginBottom: "14px" }}>{note}</div>}
-
-        {loadingCounts || !counts ? (
-          <div style={{ fontSize: "12.5px", color: C.textDim, marginBottom: "14px" }}>Checking your data…</div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px,1fr))", gap: "8px", marginBottom: "16px" }}>
-            {Object.entries(counts).map(([coll, c]) => (
-              <div key={coll} style={{ background: C.paper, border: `1px solid ${C.line}`, borderRadius: "8px", padding: "10px 12px" }}>
-                <div style={{ fontFamily: FONT_BODY, fontSize: "11px", fontWeight: 700, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.4px" }}>{coll}</div>
-                <div style={{ fontFamily: FONT_MONO, fontSize: "13.5px", color: C.text, marginTop: "4px" }}>{c.real} real · {c.sample} sample</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <button onClick={doLoadSample} disabled={busy} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 16px", borderRadius: "8px", border: "none", background: C.blue, color: C.white, fontFamily: FONT_BODY, fontWeight: 600, fontSize: "12.5px", cursor: busy ? "default" : "pointer" }}>
-          {busy ? <Loader2 size={14} className="spin" /> : <RefreshCw size={14} />} Load sample data
-        </button>
-
-        <div style={{ marginTop: "22px", paddingTop: "18px", borderTop: `1px solid ${C.line}` }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontFamily: FONT_BODY, fontSize: "12.5px", fontWeight: 700, color: C.redDeep, marginBottom: "8px" }}>
-            <AlertTriangle size={14} /> DANGER ZONE
-          </div>
-          <div style={{ fontSize: "12.5px", color: C.textDim, marginBottom: "10px" }}>
-            This permanently deletes only the {totalSample} sample record{totalSample === 1 ? "" : "s"} currently loaded — real records are never touched. Type <b>CLEAR</b> to enable the button.
-          </div>
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="Type CLEAR" style={{ fontFamily: FONT_MONO, fontSize: "13px", padding: "9px 12px", border: `1px solid ${C.line}`, borderRadius: "8px", background: C.paper, color: C.text, outline: "none", width: "160px" }} />
-            <button
-              onClick={doClearSample}
-              disabled={busy || confirmText !== "CLEAR" || totalSample === 0}
-              style={{
-                display: "flex", alignItems: "center", gap: "6px", padding: "10px 16px", borderRadius: "8px", border: "none",
-                background: (busy || confirmText !== "CLEAR" || totalSample === 0) ? C.textDim : C.redDeep, color: C.white,
-                fontFamily: FONT_BODY, fontWeight: 600, fontSize: "12.5px",
-                cursor: (busy || confirmText !== "CLEAR" || totalSample === 0) ? "default" : "pointer",
-              }}>
-              <AlertTriangle size={14} /> Clear sample data
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ---------------------------------- AUTH SCREENS ---------------------------------- */
-function AuthShell({ children }) {
-  return (
-    <div style={{
-      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      background: C.paper, fontFamily: FONT_BODY, padding: "20px",
-    }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-        * { box-sizing: border-box; }
-        input:focus { border-color: ${C.red} !important; }
-        button { transition: opacity 0.15s ease; }
-        button:hover { opacity: 0.88; }
-      `}</style>
-      <div style={{ width: "100%", maxWidth: "380px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "center", marginBottom: "22px" }}>
-          <StripeMark size={34} />
-          <div>
-            <div style={{ fontFamily: FONT_DISPLAY, fontSize: "19px", fontWeight: 700, color: C.text, lineHeight: 1.1 }}>Fikirini's</div>
-            <div style={{ fontSize: "10.5px", color: C.textDim, letterSpacing: "0.5px" }}>BARBERSHOP MANAGER</div>
-          </div>
-        </div>
-        <div style={{ background: C.card, border: `1px solid ${C.line}`, borderRadius: "12px", padding: "26px" }}>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Field({ label, icon: Icon, type = "text", value, onChange, placeholder, right }) {
-  return (
-    <div style={{ marginBottom: "14px" }}>
-      <label style={{ display: "block", fontSize: "11.5px", fontWeight: 600, color: C.textDim, marginBottom: "6px", textTransform: "uppercase", letterSpacing: "0.4px" }}>{label}</label>
-      <div style={{ position: "relative" }}>
-        {Icon && <Icon size={15} color={C.textDim} style={{ position: "absolute", left: "11px", top: "50%", transform: "translateY(-50%)" }} />}
-        <input
-          type={type}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          style={{
-            width: "100%", fontFamily: FONT_BODY, fontSize: "13.5px", padding: `10px 12px 10px ${Icon ? "34px" : "12px"}`,
-            border: `1px solid ${C.line}`, borderRadius: "8px", background: C.paper, color: C.text, outline: "none",
-          }}
-        />
-        {right && <div style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)" }}>{right}</div>}
-      </div>
-    </div>
-  );
-}
-
-function PrimaryButton({ children, onClick, disabled, type = "button" }) {
-  return (
-    <button type={type} onClick={onClick} disabled={disabled} style={{
-      width: "100%", padding: "11px", borderRadius: "8px", border: "none",
-      background: disabled ? C.textDim : C.red, color: C.white, fontFamily: FONT_BODY,
-      fontWeight: 600, fontSize: "13.5px", cursor: disabled ? "default" : "pointer",
-      display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-    }}>{children}</button>
-  );
-}
-
-function ErrorNote({ message }) {
-  if (!message) return null;
-  return (
-    <div style={{
-      display: "flex", gap: "8px", alignItems: "flex-start", background: "#F3DEDB", color: C.redDeep,
-      borderRadius: "8px", padding: "10px 12px", fontSize: "12.5px", marginBottom: "14px", fontFamily: FONT_BODY,
-    }}>
-      <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: "1px" }} />
-      <span>{message}</span>
-    </div>
-  );
-}
-
-function friendlyAuthError(err) {
-  const code = err && err.code ? err.code : "";
-  if (code.includes("wrong-password") || code.includes("invalid-credential")) return "Incorrect email or password.";
-  if (code.includes("user-not-found")) return "No account found with that email.";
-  if (code.includes("email-already-in-use")) return "That email is already registered.";
-  if (code.includes("weak-password")) return "Password should be at least 6 characters.";
-  if (code.includes("invalid-email")) return "That email address doesn't look right.";
-  if (code.includes("too-many-requests")) return "Too many attempts. Please wait a moment and try again.";
-  return err && err.message ? err.message : "Something went wrong. Please try again.";
-}
-
-function CreateAdminScreen({ onDone }) {
-  const [businessName, setBusinessName] = useState("Fikirini's");
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setError("");
-    if (password !== confirm) { setError("Passwords don't match."); return; }
-    if (password.length < 6) { setError("Password should be at least 6 characters."); return; }
-    setBusy(true);
-    try {
-      await createAdminAccount({ email, password, businessName, displayName });
-      onDone && onDone();
-    } catch (err) {
-      setError(friendlyAuthError(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <AuthShell>
-      <div style={{ marginBottom: "16px" }}>
-        <div style={{ fontFamily: FONT_DISPLAY, fontSize: "18px", fontWeight: 600, color: C.text }}>Set up your shop</div>
-        <div style={{ fontSize: "12.5px", color: C.textDim, marginTop: "2px" }}>Create the admin account. You'll use it to sign in and manage staff.</div>
-      </div>
-      <ErrorNote message={error} />
-      <form onSubmit={submit}>
-        <Field label="Business name" value={businessName} onChange={(e) => setBusinessName(e.target.value)} placeholder="Fikirini's Barbershop" />
-        <Field label="Your name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="e.g. Grace Njeri" />
-        <Field label="Admin email" icon={Mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-        <Field
-          label="Password" icon={Lock} type={showPw ? "text" : "password"} value={password}
-          onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters"
-          right={<button type="button" onClick={() => setShowPw((s) => !s)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex" }}>{showPw ? <EyeOff size={15} color={C.textDim} /> : <Eye size={15} color={C.textDim} />}</button>}
-        />
-        <Field label="Confirm password" icon={Lock} type={showPw ? "text" : "password"} value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Repeat password" />
-        <PrimaryButton type="submit" disabled={busy || !email || !password}>
-          {busy ? <Loader2 size={15} className="spin" /> : <UserPlus size={15} />} Create admin account
-        </PrimaryButton>
-      </form>
-    </AuthShell>
-  );
-}
-
-function LoginScreen({ adminExists, onGoCreateAdmin }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [resetSent, setResetSent] = useState(false);
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setError(""); setResetSent(false);
-    setBusy(true);
-    try {
-      await loginWithEmail(email, password);
-    } catch (err) {
-      setError(friendlyAuthError(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const forgot = async () => {
-    if (!email) { setError("Enter your email above first, then tap 'Forgot password'."); return; }
-    setError("");
-    try {
-      await sendReset(email);
-      setResetSent(true);
-    } catch (err) {
-      setError(friendlyAuthError(err));
-    }
-  };
-
-  return (
-    <AuthShell>
-      <div style={{ marginBottom: "16px" }}>
-        <div style={{ fontFamily: FONT_DISPLAY, fontSize: "18px", fontWeight: 600, color: C.text }}>Sign in</div>
-        <div style={{ fontSize: "12.5px", color: C.textDim, marginTop: "2px" }}>Use the email and password given to you by your admin.</div>
-      </div>
-      <ErrorNote message={error} />
-      {resetSent && (
-        <div style={{ background: "#E1EBE3", color: C.green, borderRadius: "8px", padding: "10px 12px", fontSize: "12.5px", marginBottom: "14px" }}>
-          Password reset email sent. Check your inbox.
-        </div>
-      )}
-      <form onSubmit={submit}>
-        <Field label="Email" icon={Mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-        <Field
-          label="Password" icon={Lock} type={showPw ? "text" : "password"} value={password}
-          onChange={(e) => setPassword(e.target.value)} placeholder="Your password"
-          right={<button type="button" onClick={() => setShowPw((s) => !s)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex" }}>{showPw ? <EyeOff size={15} color={C.textDim} /> : <Eye size={15} color={C.textDim} />}</button>}
-        />
-        <PrimaryButton type="submit" disabled={busy || !email || !password}>
-          {busy ? <Loader2 size={15} className="spin" /> : null} Sign in
-        </PrimaryButton>
-      </form>
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "14px" }}>
-        <button onClick={forgot} style={{ background: "none", border: "none", color: C.blue, fontSize: "12px", cursor: "pointer", padding: 0, fontFamily: FONT_BODY }}>Forgot password?</button>
-        {!adminExists && (
-          <button onClick={onGoCreateAdmin} style={{ background: "none", border: "none", color: C.blue, fontSize: "12px", cursor: "pointer", padding: 0, fontFamily: FONT_BODY }}>Create admin account</button>
-        )}
-      </div>
-    </AuthShell>
-  );
-}
-
-function DeactivatedScreen({ onBackToLogin }) {
-  return (
-    <AuthShell>
-      <div style={{ textAlign: "center" }}>
-        <div style={{
-          width: "44px", height: "44px", borderRadius: "999px", background: "#F3DEDB", color: C.redDeep,
-          display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px",
-        }}><Power size={20} /></div>
-        <div style={{ fontFamily: FONT_DISPLAY, fontSize: "17px", fontWeight: 600, color: C.text, marginBottom: "6px" }}>Account deactivated</div>
-        <div style={{ fontSize: "12.5px", color: C.textDim, marginBottom: "18px" }}>Your access has been switched off. Please contact your admin to reactivate your account.</div>
-        <PrimaryButton onClick={onBackToLogin}>Back to sign in</PrimaryButton>
-      </div>
-    </AuthShell>
-  );
-}
-
-/* ---------------------------------- STAFF MANAGEMENT (admin only) ---------------------------------- */
-function CreateStaffModal({ onClose }) {
-  const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(genPassword());
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [created, setCreated] = useState(null);
-  const [copied, setCopied] = useState(false);
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setBusy(true);
-    try {
-      await createStaffAccount({ email, password, username, displayName });
-      await logAudit(`Created staff account for ${displayName || username}`, "Medium");
-      setCreated({ email, username, password, displayName });
-    } catch (err) {
-      setError(friendlyAuthError(err));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const copyCreds = () => {
-    const text = `Fikirini's Barbershop Manager\nStaff: ${created.displayName}\nUsername: ${created.username}\nEmail: ${created.email}\nPassword: ${created.password}`;
-    navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); });
-  };
-
-  return (
-    <div style={{
-      position: "fixed", inset: 0, background: "rgba(21,23,28,0.55)", display: "flex",
-      alignItems: "center", justifyContent: "center", zIndex: 50, padding: "16px",
-    }}>
-      <div style={{ background: C.card, borderRadius: "12px", padding: "24px", width: "100%", maxWidth: "420px", border: `1px solid ${C.line}` }}>
-        {!created ? (
-          <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <div style={{ fontFamily: FONT_DISPLAY, fontSize: "17px", fontWeight: 600, color: C.text }}>New staff account</div>
-              <button onClick={() => onClose()} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><X size={18} color={C.textDim} /></button>
-            </div>
-            <ErrorNote message={error} />
-            <form onSubmit={submit}>
-              <Field label="Full name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="e.g. Ann Wanjiru" />
-              <Field label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="e.g. ann.w" />
-              <Field label="Email (for login & password reset)" icon={Mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="staff@example.com" />
-              <Field
-                label="Temporary password" icon={KeyRound} value={password} onChange={(e) => setPassword(e.target.value)}
-                right={<button type="button" onClick={() => setPassword(genPassword())} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><RefreshCw size={14} color={C.textDim} /></button>}
-              />
-              <PrimaryButton type="submit" disabled={busy || !email || !username || !password}>
-                {busy ? <Loader2 size={15} className="spin" /> : <UserPlus size={15} />} Create account
-              </PrimaryButton>
-            </form>
-          </>
-        ) : (
-          <>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-              <div style={{ fontFamily: FONT_DISPLAY, fontSize: "17px", fontWeight: 600, color: C.text }}>Account created</div>
-              <button onClick={() => onClose()} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><X size={18} color={C.textDim} /></button>
-            </div>
-            <div style={{ fontSize: "12px", color: C.textDim, marginBottom: "14px" }}>Save these credentials now and share them with {created.displayName || "the staff member"} — this password won't be shown again.</div>
-            <div style={{ background: C.paper, border: `1px solid ${C.line}`, borderRadius: "8px", padding: "14px", fontFamily: FONT_MONO, fontSize: "13px", color: C.text, marginBottom: "14px" }}>
-              <div>Username: {created.username}</div>
-              <div>Email: {created.email}</div>
-              <div>Password: {created.password}</div>
-            </div>
-            <PrimaryButton onClick={copyCreds}>
-              {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? "Copied" : "Copy credentials"}
-            </PrimaryButton>
-            <button onClick={() => onClose()} style={{
-              width: "100%", marginTop: "10px", padding: "10px", borderRadius: "8px", border: `1px solid ${C.line}`,
-              background: "transparent", color: C.text, fontFamily: FONT_BODY, fontWeight: 600, fontSize: "13px", cursor: "pointer",
-            }}>Done</button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function StaffPage() {
-  const [staff, setStaff] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [busyUid, setBusyUid] = useState(null);
-  const [note, setNote] = useState("");
-
-  useEffect(() => {
-    const q = query(collection(db, "users"), where("role", "==", "staff"));
-    const unsub = onSnapshot(q, (snap) => {
-      const rows = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      rows.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-      setStaff(rows);
-      setLoading(false);
-    });
-    return () => unsub();
-  }, []);
-
-  const toggleActive = async (row) => {
-    setBusyUid(row.id);
-    try {
-      await setStaffActive(row.id, !row.active);
-      await logAudit(`${row.active ? "Deactivated" : "Activated"} staff account: ${row.displayName || row.username}`, "Medium");
-    } finally {
-      setBusyUid(null);
-    }
-  };
-
-  const resetPw = async (row) => {
-    setBusyUid(row.id);
-    try {
-      await sendReset(row.email);
-      await logAudit(`Sent password reset email to ${row.displayName || row.username}`, "Low");
-      setNote(`Password reset email sent to ${row.email}.`);
-      setTimeout(() => setNote(""), 3500);
-    } catch (err) {
-      setNote(friendlyAuthError(err));
-      setTimeout(() => setNote(""), 3500);
-    } finally {
-      setBusyUid(null);
-    }
-  };
-
-  const columns = [
-    { key: "displayName", label: "Name" },
-    { key: "username", label: "Username", mono: true },
-    { key: "email", label: "Email", mono: true },
-    { key: "active", label: "Status", render: (r) => <Pill>{r.active ? "Active" : "Inactive"}</Pill> },
-    {
-      key: "actions", label: "Actions", render: (r) => (
-        <div style={{ display: "flex", gap: "8px" }}>
-          <button
-            onClick={() => toggleActive(r)} disabled={busyUid === r.id}
-            style={{
-              display: "flex", alignItems: "center", gap: "5px", padding: "6px 10px", borderRadius: "6px",
-              border: `1px solid ${C.line}`, background: r.active ? C.card : "#E1EBE3", color: r.active ? C.redDeep : C.green,
-              fontFamily: FONT_BODY, fontSize: "11.5px", fontWeight: 600, cursor: "pointer",
-            }}>
-            <Power size={12} /> {r.active ? "Deactivate" : "Activate"}
-          </button>
-          <button
-            onClick={() => resetPw(r)} disabled={busyUid === r.id}
-            style={{
-              display: "flex", alignItems: "center", gap: "5px", padding: "6px 10px", borderRadius: "6px",
-              border: `1px solid ${C.line}`, background: C.card, color: C.blue,
-              fontFamily: FONT_BODY, fontSize: "11.5px", fontWeight: 600, cursor: "pointer",
-            }}>
-            <KeyRound size={12} /> Reset password
-          </button>
-        </div>
-      )
+  mountDataTable(document.getElementById("staff-table"), {
+    columns: [
+      { key: "name", label: "Name" },
+      { key: "email", label: "Login email", mono: true },
+      { key: "role", label: "Role", render: (r) => pill(r.role) },
+      { key: "active", label: "Status", render: (r) => (r.active === false ? pill("Deactivated") : pill("Active")) },
+    ],
+    rows: () => staffDocs,
+    searchKeys: ["name", "email"],
+    filters: [
+      { key: "role", label: "Role", options: ALL_ROLES },
+    ],
+    defaultSort: { key: "name", dir: "asc" },
+    rowActions: (r) => {
+      const isSelf = r.uid === currentUser?.uid;
+      const activeBtn = r.active === false
+        ? `<button class="btn btn-sm btn-ok" data-act="activate" data-uid="${r.uid}">Activate</button>`
+        : `<button class="btn btn-sm btn-danger" data-act="deactivate" data-uid="${r.uid}" ${isSelf ? "disabled title=\"You can't deactivate yourself\"" : ""}>Deactivate</button>`;
+      return `${activeBtn}
+        <button class="btn btn-sm btn-ghost" data-act="reset" data-uid="${r.uid}" data-email="${escapeHtml(r.email)}">Reset password</button>
+        <button class="btn btn-sm btn-ghost" data-act="role" data-uid="${r.uid}" data-role="${r.role}">Edit role</button>`;
     },
-  ];
-
-  return (
-    <div>
-      <SectionHeader eyebrow="Team access" title="Staff Accounts" action={<AddButton label="New staff account" onClick={() => setShowModal(true)} />} />
-      {note && (
-        <div style={{ background: "#DEE5EC", color: C.blue, borderRadius: "8px", padding: "10px 14px", fontSize: "12.5px", marginBottom: "14px", fontFamily: FONT_BODY }}>{note}</div>
-      )}
-      {loading ? <LoadingBlock label="Loading staff accounts…" /> : staff.length === 0 ? (
-        <EmptyState label="No staff accounts yet. Create one to give your team access." isAdmin={false} />
-      ) : (
-        <DataTable
-          columns={columns}
-          rows={staff}
-          searchKeys={["displayName", "username", "email"]}
-          filters={[{ key: "active", label: "Status", options: ["true", "false"] }]}
-          defaultSort={{ key: "displayName", dir: "asc" }}
-        />
-      )}
-      <div style={{ marginTop: "16px", fontFamily: FONT_BODY, fontSize: "11.5px", color: C.textDim, lineHeight: 1.5 }}>
-        "Reset password" emails the staff member a secure link to set a new password themselves. Deactivating an account signs the staff member out and blocks their next sign-in until reactivated.
-      </div>
-      {showModal && <CreateStaffModal onClose={() => setShowModal(false)} />}
-    </div>
-  );
+    onMount: (container) => {
+      container.addEventListener("click", async (e) => {
+        const btn = e.target.closest("button[data-act]");
+        if (!btn) return;
+        const act = btn.dataset.act, uid = btn.dataset.uid;
+        if (act === "deactivate") {
+          if (!confirm("Deactivate this account? They won't be able to sign in until reactivated.")) return;
+          await updateDoc(doc(db, "users", uid), { active: false });
+          toast("Account deactivated.", "good");
+        } else if (act === "activate") {
+          await updateDoc(doc(db, "users", uid), { active: true });
+          toast("Account reactivated.", "good");
+        } else if (act === "reset") {
+          try { await sendPasswordResetEmail(auth, btn.dataset.email); toast(`Password reset link sent to ${btn.dataset.email}.`, "good"); }
+          catch (err) { toast(friendlyAuthError(err), "bad"); }
+        } else if (act === "role") {
+          openEditRoleModal(uid, btn.dataset.role);
+        }
+      });
+    },
+  });
 }
 
-/* ---------------------------------- NAV / SHELL ---------------------------------- */
-const NAV_BASE = [
-  { group: "Overview", items: [{ key: "dashboard", label: "Dashboard", icon: LayoutDashboard }] },
-  {
-    group: "Operations", items: [
-      { key: "appointments", label: "Appointments", icon: CalendarCheck },
-      { key: "pos", label: "Point of Sale", icon: ShoppingCart },
-      { key: "customers", label: "Customers", icon: Users },
-      { key: "barbers", label: "Barbers", icon: Scissors },
-      { key: "services", label: "Services", icon: UserCheck },
-    ]
-  },
-  {
-    group: "Stock & Money", items: [
-      { key: "inventory", label: "Inventory", icon: Boxes },
-      { key: "suppliers", label: "Suppliers", icon: Truck },
-      { key: "expenses", label: "Expenses", icon: Receipt },
-      { key: "payroll", label: "Payroll", icon: Wallet },
-    ]
-  },
-  {
-    group: "Insight", items: [
-      { key: "reports", label: "Reports", icon: BarChart3 },
-      { key: "audit", label: "Audit Log", icon: ShieldCheck },
-    ]
-  },
+function subscribeStaff() {
+  if (staffUnsub) staffUnsub();
+  staffUnsub = onSnapshot(collection(db, "users"), (snap) => {
+    staffDocs = snap.docs.map((d) => ({ uid: d.id, ...d.data() }));
+    const staffTable = document.getElementById("staff-table");
+    if (staffTable) mountStaffRefresh();
+  });
+}
+function mountStaffRefresh() {
+  // cheap re-mount keeps this simple and correct after live Firestore updates
+  const root = document.getElementById("page-wrap");
+  if (currentPage === "staff") renderStaff(root);
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+function openModal(html) {
+  const root = document.getElementById("modal-root");
+  root.innerHTML = `<div class="modal-overlay" id="modal-overlay"><div class="modal">${html}</div></div>`;
+  document.getElementById("modal-overlay").addEventListener("click", (e) => { if (e.target.id === "modal-overlay") closeModal(); });
+}
+function closeModal() { document.getElementById("modal-root").innerHTML = ""; }
+
+function genPassword() {
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  let out = "";
+  for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+function openAddStaffModal() {
+  const tempPw = genPassword();
+  openModal(`
+    <div class="modal-head"><h3 class="modal-title">Add staff account</h3><button class="modal-close" id="m-close">✕</button></div>
+    <div class="field"><label>Full name</label><input id="f-name" placeholder="e.g. Ann Wanjiru" /></div>
+    <div class="field"><label>Login email</label><input id="f-email" type="email" placeholder="ann@fikirinis.co.ke" /></div>
+    <div class="field"><label>Role</label>
+      <select id="f-role">${ALL_ROLES.filter((r) => r !== "Owner").map((r) => `<option value="${r}">${r}</option>`).join("")}</select>
+    </div>
+    <div class="field"><label>Temporary password</label><input id="f-pw" value="${tempPw}" /></div>
+    <div id="m-error"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="m-cancel">Cancel</button>
+      <button class="btn btn-primary" id="m-submit">Create account</button>
+    </div>
+  `);
+  document.getElementById("m-close").onclick = closeModal;
+  document.getElementById("m-cancel").onclick = closeModal;
+  document.getElementById("m-submit").onclick = async () => {
+    const name = document.getElementById("f-name").value.trim();
+    const email = document.getElementById("f-email").value.trim();
+    const role = document.getElementById("f-role").value;
+    const password = document.getElementById("f-pw").value;
+    const errEl = document.getElementById("m-error");
+    errEl.innerHTML = "";
+    if (!name || !email || password.length < 6) {
+      errEl.innerHTML = `<div class="auth-error">Fill in a name, valid email, and a password of at least 6 characters.</div>`;
+      return;
+    }
+    const btn = document.getElementById("m-submit");
+    btn.disabled = true; btn.textContent = "Creating...";
+    try {
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+      await setDoc(doc(db, "users", cred.user.uid), {
+        name, email, role, active: true, createdAt: serverTimestamp(), createdBy: currentUser.uid,
+      });
+      await signOut(secondaryAuth);
+      openModal(`
+        <div class="modal-head"><h3 class="modal-title">Account created</h3><button class="modal-close" id="m-close2">✕</button></div>
+        <p style="font-size:13px;color:var(--text-dim);line-height:1.5;">Share these credentials with ${escapeHtml(name)} yourself. This is the only time the password is shown.</p>
+        <div class="credential-box">
+          <div>Email: <b>${escapeHtml(email)}</b></div>
+          <div>Password: <b>${escapeHtml(password)}</b></div>
+        </div>
+        <div class="modal-actions"><button class="btn btn-primary" id="m-done">Done</button></div>
+      `);
+      document.getElementById("m-close2").onclick = closeModal;
+      document.getElementById("m-done").onclick = closeModal;
+      toast(`${name}'s account is ready.`, "good");
+    } catch (err) {
+      try { await signOut(secondaryAuth); } catch (_) {}
+      errEl.innerHTML = `<div class="auth-error">${escapeHtml(friendlyAuthError(err))}</div>`;
+      btn.disabled = false; btn.textContent = "Create account";
+    }
+  };
+}
+
+function openEditRoleModal(uid, currentRole) {
+  openModal(`
+    <div class="modal-head"><h3 class="modal-title">Edit role</h3><button class="modal-close" id="m-close">✕</button></div>
+    <div class="field"><label>Role</label>
+      <select id="f-role2">${ALL_ROLES.map((r) => `<option value="${r}" ${r === currentRole ? "selected" : ""}>${r}</option>`).join("")}</select>
+    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="m-cancel">Cancel</button><button class="btn btn-primary" id="m-save">Save</button></div>
+  `);
+  document.getElementById("m-close").onclick = closeModal;
+  document.getElementById("m-cancel").onclick = closeModal;
+  document.getElementById("m-save").onclick = async () => {
+    await updateDoc(doc(db, "users", uid), { role: document.getElementById("f-role2").value });
+    toast("Role updated.", "good");
+    closeModal();
+  };
+}
+
+function openAccountModal() {
+  openModal(`
+    <div class="modal-head"><h3 class="modal-title">Your account</h3><button class="modal-close" id="m-close">✕</button></div>
+    <div class="field"><label>Name</label><input value="${escapeHtml(currentProfile.name)}" disabled /></div>
+    <div class="field"><label>Email</label><input value="${escapeHtml(currentProfile.email)}" disabled /></div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:16px 0;" />
+    <div class="field"><label>Current password</label><input id="f-cur" type="password" /></div>
+    <div class="field"><label>New password</label><input id="f-new" type="password" /></div>
+    <div id="m-error"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="m-cancel">Cancel</button><button class="btn btn-primary" id="m-change">Change password</button></div>
+  `);
+  document.getElementById("m-close").onclick = closeModal;
+  document.getElementById("m-cancel").onclick = closeModal;
+  document.getElementById("m-change").onclick = async () => {
+    const cur = document.getElementById("f-cur").value;
+    const next = document.getElementById("f-new").value;
+    const errEl = document.getElementById("m-error");
+    errEl.innerHTML = "";
+    if (!cur || next.length < 6) { errEl.innerHTML = `<div class="auth-error">Enter your current password and a new one of at least 6 characters.</div>`; return; }
+    try {
+      const credential = EmailAuthProvider.credential(currentUser.email, cur);
+      await reauthenticateWithCredential(currentUser, credential);
+      await updatePassword(currentUser, next);
+      toast("Password changed.", "good");
+      closeModal();
+    } catch (err) {
+      errEl.innerHTML = `<div class="auth-error">${escapeHtml(friendlyAuthError(err))}</div>`;
+    }
+  };
+}
+
+/* ============================================================
+   NAVIGATION / SHELL
+   ============================================================ */
+const NAV = [
+  { group: "Overview", items: [{ key: "dashboard", label: "Dashboard", icon: "dashboard", render: renderDashboard }] },
+  { group: "Operations", items: [
+    { key: "appointments", label: "Appointments", icon: "appointments", render: renderAppointments },
+    { key: "pos", label: "Point of Sale", icon: "pos", render: renderPOS },
+    { key: "customers", label: "Customers", icon: "customers", render: renderCustomers },
+    { key: "barbers", label: "Barbers", icon: "barbers", render: renderBarbers },
+    { key: "services", label: "Services", icon: "services", render: renderServices },
+  ]},
+  { group: "Stock & Money", items: [
+    { key: "inventory", label: "Inventory", icon: "inventory", render: renderInventory },
+    { key: "suppliers", label: "Suppliers", icon: "suppliers", render: renderSuppliers },
+    { key: "expenses", label: "Expenses", icon: "expenses", render: renderExpenses, adminOnly: true },
+    { key: "payroll", label: "Payroll", icon: "payroll", render: renderPayroll, adminOnly: true },
+  ]},
+  { group: "Insight", items: [
+    { key: "reports", label: "Reports", icon: "reports", render: renderReports, adminOnly: true },
+    { key: "audit", label: "Audit Log", icon: "audit", render: renderAudit, adminOnly: true },
+  ]},
+  { group: "Admin", items: [
+    { key: "staff", label: "Staff Management", icon: "staff", render: renderStaff, adminOnly: true },
+  ]},
 ];
+const PAGE_LABEL = Object.fromEntries(NAV.flatMap((g) => g.items).map((i) => [i.key, i.label]));
+const PAGE_RENDER = Object.fromEntries(NAV.flatMap((g) => g.items).map((i) => [i.key, i.render]));
 
-const ADMIN_GROUP = {
-  group: "Admin", items: [
-    { key: "staff", label: "Staff Accounts", icon: UserPlus },
-    { key: "settings", label: "Settings", icon: SettingsIcon },
-  ]
-};
+let currentPage = "dashboard";
+let currentUser = null;
+let currentProfile = null;
 
-const PAGES = {
-  dashboard: Dashboard, appointments: AppointmentsPage, pos: POSPage, customers: CustomersPage,
-  barbers: BarbersPage, services: ServicesPage, inventory: InventoryPage, suppliers: SuppliersPage,
-  expenses: ExpensesPage, payroll: PayrollPage, reports: ReportsPage, audit: AuditPage,
-  staff: StaffPage, settings: SettingsPage,
-};
-
-function BarberShopApp({ profile, onLogout }) {
-  const [page, setPage] = useState("dashboard");
-  const isAdmin = profile && profile.role === "admin";
-  const NAV = isAdmin ? [...NAV_BASE, ADMIN_GROUP] : NAV_BASE;
-  const LABELS = Object.fromEntries(NAV.flatMap((g) => g.items).map((i) => [i.key, i.label]));
-  const Page = PAGES[page] || Dashboard;
-  const todayLabel = new Date().toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
-
-  return (
-    <div style={{ fontFamily: FONT_BODY, background: C.paper, minHeight: "100vh", display: "flex" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-        * { box-sizing: border-box; }
-        ::selection { background: ${C.red}; color: white; }
-        input:focus, select:focus { border-color: ${C.red} !important; }
-        table tr:hover td { background: ${C.paperDim}; }
-        button { transition: opacity 0.15s ease; }
-        button:hover { opacity: 0.85; }
-        .spin { animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
-
-      {/* Sidebar */}
-      <aside style={{
-        width: "252px", background: C.ink, color: C.white, flexShrink: 0, position: "sticky", top: 0,
-        height: "100vh", display: "flex", flexDirection: "column",
-        padding: "20px 14px", overflowY: "auto",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0 6px 20px 6px" }}>
-          <StripeMark size={30} />
-          <div>
-            <div style={{ fontFamily: FONT_DISPLAY, fontSize: "16px", fontWeight: 700, lineHeight: 1.1 }}>Fikirini's</div>
-            <div style={{ fontFamily: FONT_BODY, fontSize: "10.5px", color: "#9A98A0", letterSpacing: "0.5px" }}>BARBERSHOP MANAGER</div>
-          </div>
-        </div>
-
-        {NAV.map((g) => (
-          <div key={g.group} style={{ marginBottom: "16px" }}>
-            <div style={{ fontFamily: FONT_BODY, fontSize: "10px", fontWeight: 700, color: "#75737C", letterSpacing: "1px", textTransform: "uppercase", padding: "0 10px 6px" }}>{g.group}</div>
-            {g.items.map((it) => {
-              const active = page === it.key;
-              const Icon = it.icon;
-              return (
-                <button
-                  key={it.key}
-                  onClick={() => setPage(it.key)}
-                  style={{
-                    width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "9px 10px",
-                    borderRadius: "7px", border: "none", cursor: "pointer", marginBottom: "2px",
-                    background: active ? C.red : "transparent", color: active ? C.white : "#C9C7CF",
-                    fontFamily: FONT_BODY, fontSize: "13px", fontWeight: active ? 600 : 500, textAlign: "left",
-                  }}
-                >
-                  <Icon size={16} />
-                  {it.label}
-                </button>
-              );
-            })}
-          </div>
-        ))}
-
-        <div style={{ marginTop: "auto", padding: "12px 10px", borderTop: "1px solid #2A2C34", fontFamily: FONT_BODY }}>
-          <div style={{ fontSize: "12.5px", fontWeight: 600 }}>{profile?.displayName || profile?.username || "Account"}</div>
-          <div style={{ fontSize: "11px", color: "#8B8992", marginBottom: "10px" }}>{isAdmin ? "Admin · All access" : "Staff"}</div>
-          <button onClick={onLogout} style={{
-            width: "100%", display: "flex", alignItems: "center", gap: "8px", padding: "8px 10px", borderRadius: "7px",
-            border: "1px solid #2A2C34", background: "transparent", color: "#C9C7CF", fontFamily: FONT_BODY,
-            fontSize: "12.5px", fontWeight: 500, cursor: "pointer",
-          }}>
-            <LogOut size={14} /> Sign out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main content */}
-      <main style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 28px",
-          borderBottom: `1px solid ${C.line}`, background: C.paper, position: "sticky", top: 0, zIndex: 5,
-        }}>
-          <div style={{ fontFamily: FONT_BODY, fontSize: "12.5px", color: C.textDim }}>
-            <span style={{ color: C.text, fontWeight: 600 }}>Fikirini's</span> / {LABELS[page]}
-          </div>
-          <div style={{ fontFamily: FONT_MONO, fontSize: "12px", color: C.textDim }}>{todayLabel}</div>
-        </div>
-        <div style={{ padding: "26px 28px 60px" }}>
-          <Page isAdmin={isAdmin} profile={profile} />
-        </div>
-      </main>
-    </div>
-  );
+function buildNav() {
+  const container = document.getElementById("nav-container");
+  container.innerHTML = NAV.map((g) => {
+    const items = g.items.filter((it) => !it.adminOnly || isAdmin(currentProfile));
+    if (items.length === 0) return "";
+    return `<div class="nav-group">
+        <div class="nav-group-label">${escapeHtml(g.group)}</div>
+        ${items.map((it) => `<button class="nav-btn ${it.key === currentPage ? "active" : ""}" data-page="${it.key}">${ICONS[it.icon]}${escapeHtml(it.label)}</button>`).join("")}
+      </div>`;
+  }).join("");
+  container.querySelectorAll(".nav-btn").forEach((b) => b.addEventListener("click", () => goTo(b.dataset.page)));
 }
 
-/* ---------------------------------- AUTH GATE (root) ---------------------------------- */
-function Root() {
-  const [booting, setBooting] = useState(true);
-  const [adminExists, setAdminExists] = useState(true);
-  const [authView, setAuthView] = useState("login");
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [deactivated, setDeactivated] = useState(false);
-
-  useEffect(() => {
-    checkAdminExists().then(setAdminExists).catch(() => setAdminExists(true));
-  }, []);
-
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      if (!u) { setProfile(null); setBooting(false); }
-    });
-    return () => unsub();
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-    const unsub = onSnapshot(doc(db, "users", user.uid), (snap) => {
-      if (!snap.exists()) { setBooting(false); return; }
-      const data = snap.data();
-      if (data.active === false) {
-        setDeactivated(true);
-        logout();
-        setProfile(null);
-        setBooting(false);
-        return;
-      }
-      CURRENT_USER_LABEL = data.displayName || data.username || data.email || "Someone";
-      setProfile(data);
-      setBooting(false);
-    });
-    return () => unsub();
-  }, [user]);
-
-  if (booting) {
-    return (
-      <div id="boot-loader"><div className="ring"></div><div>Loading Fikirini's…</div></div>
-    );
-  }
-
-  if (deactivated && !user) {
-    return <DeactivatedScreen onBackToLogin={() => setDeactivated(false)} />;
-  }
-
-  if (!user) {
-    return authView === "createAdmin" && !adminExists ? (
-      <CreateAdminScreen onDone={() => setAuthView("login")} />
-    ) : (
-      <LoginScreen adminExists={adminExists} onGoCreateAdmin={() => setAuthView("createAdmin")} />
-    );
-  }
-
-  if (user && !profile) {
-    return (
-      <div id="boot-loader"><div className="ring"></div><div>Setting up your account…</div></div>
-    );
-  }
-
-  return <BarberShopApp profile={profile} onLogout={logout} />;
+function goTo(page) {
+  currentPage = page;
+  document.getElementById("crumb-page").textContent = PAGE_LABEL[page] || page;
+  document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.dataset.page === page));
+  document.getElementById("sidebar").classList.remove("open");
+  const renderFn = PAGE_RENDER[page] || renderDashboard;
+  renderFn(document.getElementById("page-wrap"));
 }
 
-document.getElementById("root").dataset.mounted = "true";
-const root = createRoot(document.getElementById("root"));
-root.render(<Root />);
+function showAppShell() {
+  document.getElementById("auth-screen").classList.add("hidden");
+  document.getElementById("app-shell").classList.remove("hidden");
+  document.getElementById("who-name").textContent = currentProfile.name;
+  document.getElementById("who-role").textContent = currentProfile.role + (isAdmin(currentProfile) ? " · Full access" : "");
+  document.getElementById("date-label").textContent = new Date().toLocaleDateString("en-KE", { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
+  buildNav();
+  goTo(isAdmin(currentProfile) ? "dashboard" : "dashboard");
+  if (isAdmin(currentProfile)) subscribeStaff();
+}
+
+function showAuthScreen(message) {
+  document.getElementById("app-shell").classList.add("hidden");
+  document.getElementById("auth-screen").classList.remove("hidden");
+  if (staffUnsub) { staffUnsub(); staffUnsub = null; }
+  renderAuthBody(message);
+}
+
+/* ---------- auth screen body (login / first-run signup) ---------- */
+let hasAnyUsers = null;
+async function checkHasAnyUsers() {
+  const snap = await getDocs(query(collection(db, "users"), limit(1)));
+  return !snap.empty;
+}
+
+async function renderAuthBody(message) {
+  const authBody = document.getElementById("auth-body");
+  authBody.innerHTML = `<div class="auth-loading" style="color:var(--text-dim);">Loading...</div>`;
+  try { hasAnyUsers = await checkHasAnyUsers(); } catch (e) { hasAnyUsers = true; }
+
+  let tab = hasAnyUsers ? "login" : "signup";
+
+  function draw() {
+    authBody.innerHTML = `
+      ${!hasAnyUsers ? `
+        <div class="auth-tabs">
+          <button class="auth-tab ${tab === "login" ? "active" : ""}" data-t="login">Sign in</button>
+          <button class="auth-tab ${tab === "signup" ? "active" : ""}" data-t="signup">Create shop admin</button>
+        </div>` : ""}
+      ${message ? `<div class="auth-error">${escapeHtml(message)}</div>` : ""}
+      ${hasAnyUsers && tab === "signup" ? "" : ""}
+      <div id="auth-form"></div>
+    `;
+    if (!hasAnyUsers) {
+      authBody.querySelectorAll(".auth-tab").forEach((b) => b.addEventListener("click", () => { tab = b.dataset.t; draw(); }));
+    }
+    const formEl = document.getElementById("auth-form");
+    if (tab === "signup" && !hasAnyUsers) {
+      formEl.innerHTML = `
+        <p class="auth-sub">This is a one-time step. The first account becomes the shop <b>Owner</b> and can create staff logins afterward.</p>
+        <div class="field"><label>Your name</label><input id="su-name" placeholder="e.g. Grace Njeri" /></div>
+        <div class="field"><label>Email</label><input id="su-email" type="email" placeholder="you@fikirinis.co.ke" /></div>
+        <div class="field"><label>Password</label><input id="su-pw" type="password" placeholder="At least 6 characters" /></div>
+        <div id="auth-err"></div>
+        <button class="btn btn-primary" id="su-submit" style="width:100%;justify-content:center;padding:11px;">Create admin account</button>
+      `;
+      document.getElementById("su-submit").onclick = async () => {
+        const name = document.getElementById("su-name").value.trim();
+        const email = document.getElementById("su-email").value.trim();
+        const password = document.getElementById("su-pw").value;
+        const errEl = document.getElementById("auth-err");
+        errEl.innerHTML = "";
+        if (!name || !email || password.length < 6) { errEl.innerHTML = `<div class="auth-error">Fill in your name, email, and a password of at least 6 characters.</div>`; return; }
+        const btn = document.getElementById("su-submit");
+        btn.disabled = true; btn.textContent = "Creating...";
+        try {
+          const fresh = await checkHasAnyUsers();
+          if (fresh) { errEl.innerHTML = `<div class="auth-error">An admin account already exists — please sign in instead.</div>`; hasAnyUsers = true; draw(); return; }
+          const cred = await createUserWithEmailAndPassword(auth, email, password);
+          await setDoc(doc(db, "users", cred.user.uid), { name, email, role: "Owner", active: true, createdAt: serverTimestamp(), createdBy: cred.user.uid });
+        } catch (err) {
+          errEl.innerHTML = `<div class="auth-error">${escapeHtml(friendlyAuthError(err))}</div>`;
+          btn.disabled = false; btn.textContent = "Create admin account";
+        }
+      };
+    } else {
+      formEl.innerHTML = `
+        ${hasAnyUsers ? `<p class="auth-note">Staff accounts are created by your admin in Staff Management. Use the login they shared with you.</p>` : ""}
+        <div class="field"><label>Email</label><input id="li-email" type="email" placeholder="you@fikirinis.co.ke" /></div>
+        <div class="field"><label>Password</label><input id="li-pw" type="password" placeholder="Your password" /></div>
+        <div id="auth-err"></div>
+        <button class="btn btn-primary" id="li-submit" style="width:100%;justify-content:center;padding:11px;">Sign in</button>
+        <button class="btn btn-ghost" id="li-forgot" style="width:100%;justify-content:center;padding:9px;margin-top:8px;">Forgot password?</button>
+      `;
+      document.getElementById("li-submit").onclick = async () => {
+        const email = document.getElementById("li-email").value.trim();
+        const password = document.getElementById("li-pw").value;
+        const errEl = document.getElementById("auth-err");
+        errEl.innerHTML = "";
+        const btn = document.getElementById("li-submit");
+        btn.disabled = true; btn.textContent = "Signing in...";
+        try { await signInWithEmailAndPassword(auth, email, password); }
+        catch (err) { errEl.innerHTML = `<div class="auth-error">${escapeHtml(friendlyAuthError(err))}</div>`; btn.disabled = false; btn.textContent = "Sign in"; }
+      };
+      document.getElementById("li-forgot").onclick = async () => {
+        const email = document.getElementById("li-email").value.trim();
+        const errEl = document.getElementById("auth-err");
+        if (!email) { errEl.innerHTML = `<div class="auth-error">Enter your email above first, then tap "Forgot password?" again.</div>`; return; }
+        try { await sendPasswordResetEmail(auth, email); errEl.innerHTML = `<div class="auth-note">Reset link sent to ${escapeHtml(email)}.</div>`; }
+        catch (err) { errEl.innerHTML = `<div class="auth-error">${escapeHtml(friendlyAuthError(err))}</div>`; }
+      };
+    }
+  }
+  draw();
+}
+
+/* ============================================================
+   AUTH STATE
+   ============================================================ */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { currentUser = null; currentProfile = null; showAuthScreen(); return; }
+  currentUser = user;
+  try {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (!snap.exists()) { await signOut(auth); showAuthScreen("We couldn't find a profile for this account. Contact your admin."); return; }
+    currentProfile = snap.data();
+    if (currentProfile.active === false) { await signOut(auth); showAuthScreen("This account has been deactivated. Contact your admin."); return; }
+    showAppShell();
+  } catch (err) {
+    showAuthScreen(friendlyAuthError(err));
+  }
+});
+
+document.getElementById("btn-signout").addEventListener("click", () => signOut(auth));
+document.getElementById("btn-account").addEventListener("click", openAccountModal);
+document.getElementById("menu-btn").addEventListener("click", () => document.getElementById("sidebar").classList.toggle("open"));
+
+/* ============================================================
+   PWA INSTALL PROMPT
+   ============================================================ */
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById("install-btn").classList.remove("hidden");
+});
+document.getElementById("install-btn").addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById("install-btn").classList.add("hidden");
+});
+window.addEventListener("appinstalled", () => { document.getElementById("install-btn").classList.add("hidden"); });
+
+// iOS Safari has no beforeinstallprompt — show manual instructions once.
+(function iosBanner() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.navigator.standalone === true;
+  if (isIOS && !isStandalone && !localStorage.getItem("ios-banner-dismissed")) {
+    document.getElementById("ios-banner").classList.remove("hidden");
+  }
+  const dismiss = document.getElementById("ios-dismiss");
+  if (dismiss) dismiss.addEventListener("click", () => {
+    document.getElementById("ios-banner").classList.add("hidden");
+    localStorage.setItem("ios-banner-dismissed", "1");
+  });
+})();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
 </script>
 </body>
 </html>

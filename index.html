@@ -273,8 +273,8 @@ import {
   signOut, sendPasswordResetEmail, updatePassword, EmailAuthProvider, reauthenticateWithCredential,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 import {
-  getFirestore, doc, setDoc, getDoc, getDocs, collection, query, where, orderBy,
-  onSnapshot, updateDoc, serverTimestamp, limit,
+  getFirestore, doc, setDoc, getDoc, collection,
+  onSnapshot, updateDoc, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -1100,16 +1100,21 @@ function showAuthScreen(message) {
 }
 
 /* ---------- auth screen body (login / first-run signup) ---------- */
+// We can't query the (locked-down) `users` collection before anyone is signed
+// in, so bootstrap state lives in one small public doc instead: meta/setup.
 let hasAnyUsers = null;
+let bootstrapCheckError = null;
 async function checkHasAnyUsers() {
-  const snap = await getDocs(query(collection(db, "users"), limit(1)));
-  return !snap.empty;
+  const snap = await getDoc(doc(db, "meta", "setup"));
+  return snap.exists() && snap.data().adminExists === true;
 }
 
 async function renderAuthBody(message) {
   const authBody = document.getElementById("auth-body");
   authBody.innerHTML = `<div class="auth-loading" style="color:var(--text-dim);">Loading...</div>`;
-  try { hasAnyUsers = await checkHasAnyUsers(); } catch (e) { hasAnyUsers = true; }
+  bootstrapCheckError = null;
+  try { hasAnyUsers = await checkHasAnyUsers(); }
+  catch (e) { hasAnyUsers = false; bootstrapCheckError = friendlyAuthError(e); }
 
   let tab = hasAnyUsers ? "login" : "signup";
 
@@ -1121,7 +1126,7 @@ async function renderAuthBody(message) {
           <button class="auth-tab ${tab === "signup" ? "active" : ""}" data-t="signup">Create shop admin</button>
         </div>` : ""}
       ${message ? `<div class="auth-error">${escapeHtml(message)}</div>` : ""}
-      ${hasAnyUsers && tab === "signup" ? "" : ""}
+      ${bootstrapCheckError ? `<div class="auth-error">Couldn't reach the database: ${escapeHtml(bootstrapCheckError)} — check that Firestore is created and its rules are published (see setup notes), then reload.</div>` : ""}
       <div id="auth-form"></div>
     `;
     if (!hasAnyUsers) {
@@ -1151,6 +1156,7 @@ async function renderAuthBody(message) {
           if (fresh) { errEl.innerHTML = `<div class="auth-error">An admin account already exists — please sign in instead.</div>`; hasAnyUsers = true; draw(); return; }
           const cred = await createUserWithEmailAndPassword(auth, email, password);
           await setDoc(doc(db, "users", cred.user.uid), { name, email, role: "Owner", active: true, createdAt: serverTimestamp(), createdBy: cred.user.uid });
+          await setDoc(doc(db, "meta", "setup"), { adminExists: true, createdAt: serverTimestamp() });
         } catch (err) {
           errEl.innerHTML = `<div class="auth-error">${escapeHtml(friendlyAuthError(err))}</div>`;
           btn.disabled = false; btn.textContent = "Create admin account";

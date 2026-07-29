@@ -205,6 +205,21 @@
     .topbar{padding:12px 16px;}
   }
   .menu-btn{display:none;background:transparent;border:none;color:var(--text);padding:6px;margin-right:4px;}
+
+  /* ---------- print-only report export (drives "Export PDF") ---------- */
+  #print-report-root{display:none;}
+  #print-report-root h2{font-family:var(--font-d);}
+  #print-report-root table{width:100%;border-collapse:collapse;}
+  #print-report-root th,#print-report-root td{border:1px solid #999;padding:6px 8px;font-size:11px;text-align:left;}
+  @media print{
+    body.printing-report > *:not(#print-report-root){display:none !important;}
+    body.printing-report #print-report-root{display:block !important;}
+  }
+
+  /* ---------- settings page ---------- */
+  .logo-preview{width:64px;height:64px;border-radius:12px;object-fit:cover;background:var(--paper-dim);border:1px solid var(--line);flex-shrink:0;}
+  .settings-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+  .danger-zone{border:1px solid #E7C6C1;background:#FBF3F1;border-radius:10px;padding:16px;margin-top:8px;}
 </style>
 </head>
 <body>
@@ -214,9 +229,9 @@
   <div class="auth-card">
     <div class="auth-stripe"></div>
     <div class="auth-brand">
-      <div class="stripe-mark" style="width:30px;height:30px;"></div>
+      <div class="stripe-mark" id="auth-brand-mark" style="width:30px;height:30px;"></div>
       <div>
-        <div class="brand-name" style="color:var(--text);">Fikirini's</div>
+        <div class="brand-name" id="auth-brand-name" style="color:var(--text);">Fikirini's</div>
         <div class="brand-sub" style="color:var(--text-dim);">BARBERSHOP MANAGER</div>
       </div>
     </div>
@@ -228,10 +243,10 @@
 <div id="app-shell" class="hidden">
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="stripe-mark" style="width:30px;height:30px;"></div>
+      <div class="stripe-mark" id="side-brand-mark" style="width:30px;height:30px;"></div>
       <div>
-        <div class="brand-name">Fikirini's</div>
-        <div class="brand-sub">BARBERSHOP MANAGER</div>
+        <div class="brand-name" id="side-brand-name">Fikirini's</div>
+        <div class="brand-sub" id="side-brand-sub">BARBERSHOP MANAGER</div>
       </div>
     </div>
     <div id="nav-container"></div>
@@ -251,9 +266,13 @@
         <button class="menu-btn" id="menu-btn">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
-        <div class="crumb"><b>Fikirini's</b> / <span id="crumb-page">Dashboard</span></div>
+        <div class="crumb"><b id="crumb-brand">Fikirini's</b> / <span id="crumb-page">Dashboard</span></div>
       </div>
       <div class="topbar-right">
+        <span class="pill pill-warn hidden" id="net-status" style="display:flex;align-items:center;gap:5px;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          <span id="net-status-text">Offline — changes will sync later</span>
+        </span>
         <button class="install-btn hidden" id="install-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
           Install app
@@ -285,6 +304,7 @@ import {
 import {
   getFirestore, doc, setDoc, getDoc, collection,
   onSnapshot, updateDoc, addDoc, deleteDoc, serverTimestamp, query, orderBy,
+  enableIndexedDbPersistence, enableMultiTabIndexedDbPersistence, writeBatch, getDocs,
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -299,6 +319,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+/* ---------- OFFLINE PERSISTENCE ----------
+   Once enabled, reads come from a local IndexedDB cache and writes (addDoc/
+   updateDoc/deleteDoc) resolve immediately even with no network — Firestore
+   queues them locally and syncs automatically the moment connectivity comes
+   back. This is what lets the whole app keep working (no "site can't be
+   reached" screens) while offline. */
+enableMultiTabIndexedDbPersistence(db).catch((err) => {
+  // Falls back to single-tab persistence if another tab already holds the lock,
+  // or to in-memory (still functional, just non-persistent) if the browser
+  // doesn't support it at all (e.g. some private-browsing modes).
+  if (err && err.code === "failed-precondition") {
+    enableIndexedDbPersistence(db).catch(() => {});
+  }
+});
 
 // A second, independent Firebase app instance. We use this ONLY to create
 // staff accounts, so that creating a new sign-in does not swap out the
@@ -371,6 +406,7 @@ const ICONS = {
   staff: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
   search: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
   plus: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  settings: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
 };
 
 /* ============================================================
@@ -382,8 +418,11 @@ const ICONS = {
    barbers, services, customers, inventory, suppliers, expenses,
    appointments, sales, audit — the same way 'users' already works.
    ============================================================ */
-const COLLECTIONS = ["barbers", "services", "customers", "inventory", "suppliers", "expenses", "appointments", "sales"];
-const DATA = { barbers: [], services: [], customers: [], inventory: [], suppliers: [], expenses: [], appointments: [], sales: [], audit: [] };
+const COLLECTIONS = ["barbers", "services", "customers", "inventory", "suppliers", "expenses", "appointments", "sales",
+  "purchases", "stockMovements", "attendance", "promotions", "deposits"];
+const DATA = { barbers: [], services: [], customers: [], inventory: [], suppliers: [], expenses: [], appointments: [], sales: [],
+  purchases: [], stockMovements: [], attendance: [], promotions: [], deposits: [], audit: [] };
+const BRANCHES = ["Main Branch", "Westlands Branch"];
 let dataUnsubs = [];
 
 function subscribeAllData() {
@@ -417,6 +456,43 @@ function softRerender() {
       ["INPUT", "SELECT", "TEXTAREA"].includes(active.tagName)) return;
   const renderFn = PAGE_RENDER[currentPage] || renderDashboard;
   renderFn(document.getElementById("page-wrap"));
+}
+
+/* ============================================================
+   SHOP SETTINGS (name / logo / location / phone)
+   Stored at settings/shop, cached locally by Firestore persistence so
+   branding still shows correctly even when opened offline.
+   ============================================================ */
+const DEFAULT_SHOP_SETTINGS = { name: "Fikirini's", location: "Nairobi, Kenya", phone: "+254 700 000 000", logo: "" };
+let SHOP_SETTINGS = { ...DEFAULT_SHOP_SETTINGS };
+let settingsUnsub = null;
+function subscribeSettings() {
+  if (settingsUnsub) settingsUnsub();
+  settingsUnsub = onSnapshot(doc(db, "settings", "shop"), (snap) => {
+    SHOP_SETTINGS = snap.exists() ? { ...DEFAULT_SHOP_SETTINGS, ...snap.data() } : { ...DEFAULT_SHOP_SETTINGS };
+    applyBranding();
+    if (currentPage === "settings") softRerender();
+  }, () => {});
+}
+function applyBranding() {
+  const name = SHOP_SETTINGS.name || DEFAULT_SHOP_SETTINGS.name;
+  document.title = `${name} — Barbershop Manager`;
+  ["side-brand-name", "auth-brand-name", "crumb-brand"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = name;
+  });
+  const markIds = ["side-brand-mark", "auth-brand-mark"];
+  markIds.forEach((id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (SHOP_SETTINGS.logo) {
+      el.style.background = `url("${SHOP_SETTINGS.logo}") center/cover no-repeat`;
+      el.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.15)";
+    } else {
+      el.style.background = "repeating-linear-gradient(45deg,var(--red) 0 6px,#fff 6px 12px,var(--blue) 12px 18px)";
+      el.style.boxShadow = "inset 0 0 0 2px rgba(0,0,0,.25)";
+    }
+  });
 }
 
 function todayStr() { return new Date().toISOString().slice(0, 10); }
@@ -721,6 +797,8 @@ function appointmentFields(barberNames, serviceNames) {
     { key: "barber", label: "Barber", type: "select", options: barberNames.length ? barberNames : ["—"] },
     { key: "service", label: "Service", type: "select", options: serviceNames.length ? serviceNames : ["—"] },
     { key: "type", label: "Type", type: "select", options: ["Booking", "Walk-in"] },
+    { key: "source", label: "Source", type: "select", options: ["Walk-in", "Phone", "Online", "Referral"] },
+    { key: "branch", label: "Branch", type: "select", options: BRANCHES },
     { key: "status", label: "Status", type: "select", options: APPT_STATUSES },
   ];
 }
@@ -812,6 +890,10 @@ function renderPOS(root) {
           <select id="pos-method" style="width:100%;padding:8px 10px;border-radius:7px;border:none;font-size:13px;">
             <option>Cash</option><option>M-Pesa</option><option>Card</option><option>Mixed</option>
           </select></div>
+        <div class="field"><label style="color:#9A9CA6;">Branch</label>
+          <select id="pos-branch" style="width:100%;padding:8px 10px;border-radius:7px;border:none;font-size:13px;">
+            ${BRANCHES.map((b) => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join("")}
+          </select></div>
         <div class="ticket-lines" id="ticket-lines"><div class="ticket-empty">Tap a service to add it to the ticket.</div></div>
         <div class="ticket-total"><span>Total</span><span id="ticket-total">KSh 0</span></div>
         <button class="charge-btn" id="charge-btn">Charge KSh 0</button>
@@ -841,12 +923,13 @@ function renderPOS(root) {
     const customer = document.getElementById("pos-customer").value.trim() || "Walk-in";
     const barber = document.getElementById("pos-barber").value || "—";
     const method = document.getElementById("pos-method").value;
+    const branch = document.getElementById("pos-branch").value;
     const now = new Date();
     chargeBtn.disabled = true; chargeBtn.textContent = "Charging...";
     try {
       await addDoc(collection(db, "sales"), {
         date: now.toISOString().slice(0, 10), time: now.toTimeString().slice(0, 5),
-        customer, barber, method,
+        customer, barber, method, branch,
         items: cart.map((c) => ({ name: c.name, price: c.price })),
         itemsLabel: cart.map((c) => c.name).join(", "),
         amount: total, cashier: currentProfile ? currentProfile.name : "—",
@@ -903,6 +986,7 @@ function renderCustomers(root) {
       { key: "phone", label: "Phone" },
       { key: "preferredBarber", label: "Preferred barber", type: "select", options: ["—", ...barberNames] },
       { key: "membership", label: "Membership", type: "select", options: ["New", "Standard", "VIP"] },
+      { key: "branch", label: "Branch", type: "select", options: BRANCHES },
     ],
     columns: [
       { key: "name", label: "Customer" }, { key: "phone", label: "Phone", mono: true },
@@ -933,6 +1017,7 @@ function renderBarbers(root) {
       { key: "specialty", label: "Specialty" },
       { key: "phone", label: "Phone" },
       { key: "status", label: "Status", type: "select", options: ["Active", "On Leave"] },
+      { key: "branch", label: "Branch", type: "select", options: BRANCHES },
       { key: "commissionRate", label: "Commission %", type: "number", step: "1", default: 30 },
       { key: "baseSalary", label: "Base salary (KSh)", type: "number", step: "1", default: 15000 },
       { key: "deductions", label: "Monthly deductions (KSh)", type: "number", step: "1", default: 0 },
@@ -991,6 +1076,8 @@ function renderInventory(root) {
       { key: "reorder", label: "Reorder at", type: "number", step: "1" },
       { key: "unitCost", label: "Unit cost (KSh)", type: "number", step: "1" },
       { key: "supplier", label: "Supplier", type: "select", options: ["—", ...supplierNames] },
+      { key: "branch", label: "Branch", type: "select", options: BRANCHES },
+      { key: "expiryDate", label: "Expiry date (if any)", type: "date" },
     ],
     columns: [
       { key: "name", label: "Item" }, { key: "category", label: "Category" },
@@ -1036,6 +1123,7 @@ function renderExpenses(root) {
       { key: "desc", label: "Description", required: true },
       { key: "amount", label: "Amount (KSh)", type: "number", step: "1" },
       { key: "approvedBy", label: "Approved by" },
+      { key: "branch", label: "Branch", type: "select", options: BRANCHES },
     ],
     columns: [
       { key: "date", label: "Date", mono: true }, { key: "category", label: "Category" }, { key: "desc", label: "Description" },
@@ -1067,47 +1155,795 @@ function renderPayroll(root) {
   });
 }
 
-function renderReports(root) {
-  const salesLive = DATA.sales.filter((s) => !s.voided);
-  const byBarber = (() => {
-    const map = new Map();
-    salesLive.forEach((s) => map.set(s.barber || "—", (map.get(s.barber || "—") || 0) + (s.amount || 0)));
-    return [...map.entries()].map(([name, revenue]) => ({ name, revenue }));
-  })();
-  const byCustomer = (() => {
-    const map = new Map();
-    salesLive.forEach((s) => {
-      const k = s.customer || "Walk-in";
-      const cur = map.get(k) || { name: k, visits: 0, spend: 0 };
-      cur.visits += 1; cur.spend += s.amount || 0; map.set(k, cur);
-    });
-    return [...map.values()];
-  })();
-  const byService = (() => {
-    const map = new Map();
-    salesLive.forEach((s) => (s.items || []).forEach((it) => {
-      const cur = map.get(it.name) || { name: it.name, count: 0, revenue: 0 };
-      cur.revenue += it.price || 0; cur.count += 1; map.set(it.name, cur);
-    }));
-    return [...map.values()];
-  })();
-  const reports = {
-    barber: { cols: [{ key: "name", label: "Barber" }, { key: "revenue", label: "Revenue", mono: true, align: "right", render: (r) => money(r.revenue) }], rows: byBarber, sort: { key: "revenue", dir: "desc" } },
-    service: { cols: [{ key: "name", label: "Service" }, { key: "count", label: "Times sold", align: "right" }, { key: "revenue", label: "Revenue", mono: true, align: "right", render: (r) => money(r.revenue) }], rows: byService, sort: { key: "revenue", dir: "desc" } },
-    customer: { cols: [{ key: "name", label: "Customer" }, { key: "visits", label: "Visits", align: "right" }, { key: "spend", label: "Spend", mono: true, align: "right", render: (r) => money(r.spend) }], rows: byCustomer, sort: { key: "spend", dir: "desc" } },
-    payment: { cols: [{ key: "itemsLabel", label: "Items" }, { key: "method", label: "Method", render: (r) => pill(r.method, { Cash: "neutral", "M-Pesa": "info", Card: "info", Mixed: "warn" }) }, { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }], rows: salesLive, sort: { key: "amount", dir: "desc" } },
-  };
-  const tabs = [["barber", "By barber"], ["service", "By service"], ["customer", "By customer"], ["payment", "By payment method"]];
-  let active = "barber";
-  root.innerHTML = `${sectionHeader("Business intelligence", "Reports")}
-    <div class="report-tabs">${tabs.map(([k, l]) => `<button class="report-tab ${k === active ? "active" : ""}" data-k="${k}">${l}</button>`).join("")}</div>
-    <div id="report-table"></div>`;
-  function draw() {
-    root.querySelectorAll(".report-tab").forEach((b) => b.classList.toggle("active", b.dataset.k === active));
-    const r = reports[active];
-    mountDataTable(document.getElementById("report-table"), { columns: r.cols, rows: r.rows, searchKeys: ["name", "itemsLabel"], filters: [], defaultSort: r.sort });
+/* ============================================================
+   REPORTS ENGINE
+   ============================================================ */
+const DATE_RANGE_PRESETS = ["Today", "Yesterday", "This Week", "Last Week", "This Month", "Last Month", "This Year", "All Time", "Custom"];
+
+function computeRangePreset(key, customStart, customEnd) {
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  const today = new Date(todayStr() + "T00:00:00");
+  const startOfWeek = (d) => { const x = new Date(d); const day = x.getDay(); const diff = day === 0 ? -6 : 1 - day; x.setDate(x.getDate() + diff); return x; };
+  switch (key) {
+    case "Today": return [fmt(today), fmt(today)];
+    case "Yesterday": { const y = new Date(today); y.setDate(y.getDate() - 1); return [fmt(y), fmt(y)]; }
+    case "This Week": { const s = startOfWeek(today); return [fmt(s), fmt(today)]; }
+    case "Last Week": { const s = startOfWeek(today); s.setDate(s.getDate() - 7); const e = new Date(s); e.setDate(e.getDate() + 6); return [fmt(s), fmt(e)]; }
+    case "This Month": { const s = new Date(today.getFullYear(), today.getMonth(), 1); return [fmt(s), fmt(today)]; }
+    case "Last Month": { const s = new Date(today.getFullYear(), today.getMonth() - 1, 1); const e = new Date(today.getFullYear(), today.getMonth(), 0); return [fmt(s), fmt(e)]; }
+    case "This Year": { const s = new Date(today.getFullYear(), 0, 1); return [fmt(s), fmt(today)]; }
+    case "Custom": return (customStart && customEnd) ? [customStart, customEnd] : null;
+    case "All Time": default: return null;
   }
-  root.querySelectorAll(".report-tab").forEach((b) => b.addEventListener("click", () => { active = b.dataset.k; draw(); }));
+}
+function inRange(d, range) { if (!range || !d) return !range ? true : false; return d >= range[0] && d <= range[1]; }
+function fEq(row, field, val) { if (!val || val === "All") return true; const v = typeof field === "function" ? field(row) : row[field]; return String(v ?? "") === String(val); }
+function fIncludes(row, field, val) { if (!val || val === "All") return true; const v = typeof field === "function" ? field(row) : row[field]; return String(v ?? "").includes(String(val)); }
+
+/* ---------- scoped row accessors (apply the shared filter bar to each collection) ---------- */
+function scopeSales(ctx) {
+  let rows = DATA.sales.filter((s) => !s.voided);
+  if (ctx.range) rows = rows.filter((s) => inRange(s.date, ctx.range));
+  rows = rows.filter((s) => fEq(s, "branch", ctx.branch) && fEq(s, "barber", ctx.barber) && fEq(s, "customer", ctx.customer)
+    && fEq(s, "method", ctx.paymentMethod) && fEq(s, "cashier", ctx.employee));
+  if (ctx.service && ctx.service !== "All") rows = rows.filter((s) => (s.items || []).some((it) => it.name === ctx.service));
+  return rows;
+}
+function scopeAppointments(ctx) {
+  let rows = DATA.appointments;
+  if (ctx.range) rows = rows.filter((a) => inRange(a.date, ctx.range));
+  rows = rows.filter((a) => fEq(a, "branch", ctx.branch) && fEq(a, "barber", ctx.barber) && fEq(a, "customer", ctx.customer)
+    && fEq(a, "service", ctx.service) && fEq(a, "status", ctx.status) && fEq(a, "source", ctx.employee));
+  return rows;
+}
+function scopeInventory(ctx) {
+  let rows = DATA.inventory;
+  rows = rows.filter((i) => fEq(i, "branch", ctx.branch) && fEq(i, "supplier", ctx.supplier) && fEq(i, "name", ctx.product));
+  return rows;
+}
+function scopeExpenses(ctx) {
+  let rows = DATA.expenses;
+  if (ctx.range) rows = rows.filter((e) => inRange(e.date, ctx.range));
+  rows = rows.filter((e) => fEq(e, "branch", ctx.branch) && fEq(e, "approvedBy", ctx.employee) && fEq(e, "category", ctx.status));
+  return rows;
+}
+function scopePurchases(ctx) {
+  let rows = DATA.purchases;
+  if (ctx.range) rows = rows.filter((p) => inRange(p.date, ctx.range));
+  rows = rows.filter((p) => fEq(p, "branch", ctx.branch) && fEq(p, "supplier", ctx.supplier) && fEq(p, "item", ctx.product) && fEq(p, "status", ctx.status));
+  return rows;
+}
+function scopeStockMovements(ctx) {
+  let rows = DATA.stockMovements;
+  if (ctx.range) rows = rows.filter((m) => inRange(m.date, ctx.range));
+  rows = rows.filter((m) => fEq(m, "branch", ctx.branch) && fEq(m, "item", ctx.product) && fEq(m, "type", ctx.status));
+  return rows;
+}
+function scopeAttendance(ctx) {
+  let rows = DATA.attendance;
+  if (ctx.range) rows = rows.filter((a) => inRange(a.date, ctx.range));
+  rows = rows.filter((a) => fEq(a, "branch", ctx.branch) && fEq(a, "barber", ctx.barber) && fEq(a, "status", ctx.status));
+  return rows;
+}
+function scopeAudit(ctx) {
+  let rows = DATA.audit;
+  if (ctx.range) rows = rows.filter((a) => inRange((a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.ms)).toISOString().slice(0, 10), ctx.range));
+  rows = rows.filter((a) => fEq(a, "employee", ctx.employee));
+  return rows;
+}
+function scopeDeposits(ctx) {
+  let rows = DATA.deposits;
+  if (ctx.range) rows = rows.filter((d) => inRange(d.date, ctx.range));
+  rows = rows.filter((d) => fEq(d, "branch", ctx.branch));
+  return rows;
+}
+
+/* ---------- generic grouping/aggregation ---------- */
+function groupRows(rows, keyFn) {
+  const map = new Map();
+  rows.forEach((r) => { const k = keyFn(r); if (k == null || k === "") return; if (!map.has(k)) map.set(k, []); map.get(k).push(r); });
+  return map;
+}
+function groupReport(rows, keyFn, nameLabel, aggregates, sortKey) {
+  const map = groupRows(rows, keyFn);
+  const data = [...map.entries()].map(([name, gr]) => {
+    const out = { name };
+    aggregates.forEach((a) => { out[a.key] = a.fn(gr); });
+    return out;
+  });
+  const columns = [{ key: "name", label: nameLabel }, ...aggregates.map((a) => ({ key: a.key, label: a.label, mono: !!a.mono, align: a.align || "right", render: a.render }))];
+  return { columns, rows: data, defaultSort: { key: sortKey || aggregates[0]?.key || "name", dir: "desc" }, searchKeys: ["name"] };
+}
+const AGG_COUNT = (label) => ({ key: "count", label: label || "Count", fn: (rs) => rs.length });
+const AGG_SUM = (field, label) => ({ key: field + "Total", label, mono: true, render: (r) => money(r[field + "Total"]), fn: (rs) => rs.reduce((a, r) => a + (r[field] || 0), 0) });
+const AGG_AVG = (field, label) => ({ key: field + "Avg", label, mono: true, render: (r) => money(r[field + "Avg"]), fn: (rs) => rs.length ? Math.round(rs.reduce((a, r) => a + (r[field] || 0), 0) / rs.length) : 0 });
+const AGG_UNIQUE = (field, label) => ({ key: field + "Uniq", label, align: "right", fn: (rs) => new Set(rs.map((r) => r[field])).size });
+
+function rowTable(columns, rows, searchKeys, defaultSort) { return { columns, rows, searchKeys: searchKeys || [], defaultSort: defaultSort || { key: columns[0].key, dir: "asc" } }; }
+
+/* ---------- shared filter option lists ---------- */
+function optBarbers() { return [...new Set(DATA.barbers.map((b) => b.name))]; }
+function optCustomers() { return [...new Set(DATA.customers.map((c) => c.name))]; }
+function optServices() { return [...new Set(DATA.services.map((s) => s.name))]; }
+function optProducts() { return [...new Set(DATA.inventory.map((i) => i.name))]; }
+function optSuppliers() { return [...new Set(DATA.suppliers.map((s) => s.name))]; }
+function optEmployees() { return [...new Set([...DATA.barbers.map((b) => b.name), ...DATA.sales.map((s) => s.cashier)].filter(Boolean))]; }
+const optPaymentMethods = ["Cash", "M-Pesa", "Card", "Mixed"];
+const optApptStatus = ["Confirmed", "In Progress", "Completed", "No-show", "Cancelled"];
+
+console.log("engine draft loaded ok");
+
+/* ============================================================
+   REPORT CATEGORY REGISTRY — the ~130 reports from the spec
+   Each report: { id, label, note, filters:[...], statusOptions?, run(ctx) }
+   run(ctx) returns { columns, rows, searchKeys, defaultSort }
+   ============================================================ */
+const REPORT_CATEGORIES = [
+
+{ key: "sales", label: "Sales Reports", reports: [
+  { id: "daily-sales", label: "Daily Sales Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales({ ...ctx, range: ctx.range || computeRangePreset("Today") });
+      return groupReport(rows, (s) => s.date, "Date", [AGG_COUNT("Receipts"), AGG_SUM("amount", "Revenue")], "amountTotal"); } },
+  { id: "weekly-sales", label: "Weekly Sales Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales({ ...ctx, range: ctx.range || computeRangePreset("This Week") });
+      return groupReport(rows, (s) => s.date, "Date", [AGG_COUNT("Receipts"), AGG_SUM("amount", "Revenue")]); } },
+  { id: "monthly-sales", label: "Monthly Sales Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales({ ...ctx, range: ctx.range || computeRangePreset("This Month") });
+      return groupReport(rows, (s) => s.date.slice(0, 7), "Month", [AGG_COUNT("Receipts"), AGG_SUM("amount", "Revenue")]); } },
+  { id: "yearly-sales", label: "Yearly Sales Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales({ ...ctx, range: ctx.range || computeRangePreset("This Year") });
+      return groupReport(rows, (s) => s.date.slice(0, 4), "Year", [AGG_COUNT("Receipts"), AGG_SUM("amount", "Revenue")]); } },
+  { id: "sales-branch", label: "Sales by Branch", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.branch || "—", "Branch", [AGG_COUNT("Receipts"), AGG_SUM("amount", "Revenue"), AGG_AVG("amount", "Avg. ticket")]); } },
+  { id: "sales-cashier", label: "Sales by Cashier", filters: ["dateRange", "branch", "employee"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.cashier || "—", "Cashier", [AGG_COUNT("Receipts"), AGG_SUM("amount", "Revenue")]); } },
+  { id: "sales-payment", label: "Sales by Payment Method", filters: ["dateRange", "branch", "paymentMethod"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.method || "—", "Payment method", [AGG_COUNT("Receipts"), AGG_SUM("amount", "Revenue")]); } },
+  { id: "sales-service", label: "Sales by Service", filters: ["dateRange", "branch", "service"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      const map = new Map();
+      rows.forEach((s) => (s.items || []).forEach((it) => { const cur = map.get(it.name) || { name: it.name, count: 0, total: 0 }; cur.count++; cur.total += it.price || 0; map.set(it.name, cur); }));
+      return rowTable([{ key: "name", label: "Service" }, { key: "count", label: "Times sold", align: "right" }, { key: "total", label: "Revenue", mono: true, align: "right", render: (r) => money(r.total) }], [...map.values()], ["name"], { key: "total", dir: "desc" }); } },
+  { id: "sales-product", label: "Sales by Product", filters: ["dateRange", "branch", "product"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => (s.productItems || []).length);
+      const map = new Map();
+      rows.forEach((s) => (s.productItems || []).forEach((it) => { const cur = map.get(it.name) || { name: it.name, count: 0, total: 0 }; cur.count += it.qty || 1; cur.total += (it.price || 0) * (it.qty || 1); map.set(it.name, cur); }));
+      return rowTable([{ key: "name", label: "Product" }, { key: "count", label: "Units sold", align: "right" }, { key: "total", label: "Revenue", mono: true, align: "right", render: (r) => money(r.total) }], [...map.values()], ["name"], { key: "total", dir: "desc" }); } },
+  { id: "peak-hours", label: "Peak Hours Sales Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => (s.time || "00:00").slice(0, 2) + ":00", "Hour", [AGG_COUNT("Receipts"), AGG_SUM("amount", "Revenue")], "count"); } },
+  { id: "sales-comparison", label: "Sales Comparison Report (Today vs Yesterday, Month vs Month)", filters: ["branch"], run: (ctx) => {
+      const all = scopeSales({ ...ctx, range: null });
+      const sum = (rng) => all.filter((s) => inRange(s.date, rng)).reduce((a, s) => a + (s.amount || 0), 0);
+      const today = computeRangePreset("Today"), yesterday = computeRangePreset("Yesterday");
+      const thisMonth = computeRangePreset("This Month"), lastMonth = computeRangePreset("Last Month");
+      const rows = [
+        { name: "Today", total: sum(today) }, { name: "Yesterday", total: sum(yesterday) },
+        { name: "This Month", total: sum(thisMonth) }, { name: "Last Month", total: sum(lastMonth) },
+      ];
+      return rowTable([{ key: "name", label: "Period" }, { key: "total", label: "Revenue", mono: true, align: "right", render: (r) => money(r.total) }], rows, ["name"], { key: "name", dir: "asc" }); } },
+]},
+
+{ key: "service", label: "Service Reports", reports: [
+  { id: "popular-services", label: "Most Popular Services", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx); const map = new Map();
+      rows.forEach((s) => (s.items || []).forEach((it) => map.set(it.name, (map.get(it.name) || 0) + 1)));
+      const data = [...map.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+      return rowTable([{ key: "name", label: "Service" }, { key: "count", label: "Times booked", align: "right" }], data, ["name"], { key: "count", dir: "desc" }); } },
+  { id: "least-services", label: "Least Requested Services", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx); const map = new Map(DATA.services.map((s) => [s.name, 0]));
+      rows.forEach((s) => (s.items || []).forEach((it) => map.set(it.name, (map.get(it.name) || 0) + 1)));
+      const data = [...map.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => a.count - b.count);
+      return rowTable([{ key: "name", label: "Service" }, { key: "count", label: "Times booked", align: "right" }], data, ["name"], { key: "count", dir: "asc" }); } },
+  { id: "haircuts-per-day", label: "Number of Haircuts Per Day", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => (s.items || []).some((it) => /haircut/i.test(it.name)));
+      return groupReport(rows, (s) => s.date, "Date", [AGG_COUNT("Haircuts")], "count"); } },
+  { id: "shaves-per-day", label: "Number of Shaves Per Day", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => (s.items || []).some((it) => /shave/i.test(it.name)));
+      return groupReport(rows, (s) => s.date, "Date", [AGG_COUNT("Shaves")], "count"); } },
+  { id: "beard-grooming", label: "Beard Grooming Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => (s.items || []).some((it) => /beard/i.test(it.name)));
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_COUNT("Beard services"), AGG_SUM("amount", "Revenue")]); } },
+  { id: "kids-haircut", label: "Kids Haircut Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => (s.items || []).some((it) => /kids?/i.test(it.name)));
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_COUNT("Kids cuts"), AGG_SUM("amount", "Revenue")]); } },
+  { id: "premium-services", label: "Premium Services Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const premiumNames = new Set(DATA.services.filter((s) => s.category === "Premium").map((s) => s.name));
+      const rows = scopeSales(ctx).filter((s) => (s.items || []).some((it) => premiumNames.has(it.name)));
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_COUNT("Premium services"), AGG_SUM("amount", "Revenue")]); } },
+  { id: "service-revenue", label: "Service Revenue Report", filters: ["dateRange", "branch", "service"], run: (ctx) => {
+      const rows = scopeSales(ctx); const map = new Map();
+      rows.forEach((s) => (s.items || []).forEach((it) => { const cur = map.get(it.name) || { name: it.name, total: 0, count: 0 }; cur.total += it.price || 0; cur.count++; map.set(it.name, cur); }));
+      return rowTable([{ key: "name", label: "Service" }, { key: "count", label: "Count", align: "right" }, { key: "total", label: "Revenue", mono: true, align: "right", render: (r) => money(r.total) }], [...map.values()], ["name"], { key: "total", dir: "desc" }); } },
+  { id: "avg-service-duration", label: "Average Service Duration", filters: ["service"], run: (ctx) => {
+      let rows = DATA.services; if (ctx.service && ctx.service !== "All") rows = rows.filter((s) => s.name === ctx.service);
+      return rowTable([{ key: "name", label: "Service" }, { key: "duration", label: "Avg. duration (min)", align: "right" }], rows.map((s) => ({ name: s.name, duration: s.duration || 0 })), ["name"], { key: "duration", dir: "desc" }); } },
+  { id: "cancelled-services", label: "Cancelled Services Report", filters: ["dateRange", "branch", "barber", "service"], run: (ctx) => {
+      const rows = scopeAppointments({ ...ctx, status: "Cancelled" });
+      return groupReport(rows, (a) => a.service || "—", "Service", [AGG_COUNT("Cancellations")], "count"); } },
+]},
+
+{ key: "barber", label: "Barber Performance Reports", reports: [
+  { id: "revenue-per-barber", label: "Revenue Generated Per Barber", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_SUM("amount", "Revenue"), AGG_COUNT("Tickets")]); } },
+  { id: "customers-per-barber", label: "Customers Served Per Barber", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_UNIQUE("customer", "Unique customers"), AGG_COUNT("Total visits")]); } },
+  { id: "avg-customers-per-day", label: "Average Customers Per Day", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeSales(ctx); const byBarber = groupRows(rows, (s) => s.barber || "—");
+      const data = [...byBarber.entries()].map(([name, gr]) => { const days = new Set(gr.map((r) => r.date)).size || 1; return { name, avg: Math.round((gr.length / days) * 10) / 10 }; });
+      return rowTable([{ key: "name", label: "Barber" }, { key: "avg", label: "Avg. customers/day", align: "right" }], data, ["name"], { key: "avg", dir: "desc" }); } },
+  { id: "commission-report", label: "Commission Report", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_SUM("amount", "Revenue"), { key: "commission", label: "Commission earned", mono: true, align: "right", render: (r) => money(r.commission), fn: (rs) => { const b = DATA.barbers.find((x) => x.name === rs[0]?.barber); const rate = (b && b.commissionRate) || 30; return Math.round(rs.reduce((a, r) => a + (r.amount || 0), 0) * (rate / 100)); } }]); } },
+  { id: "tips-earned", label: "Tips Earned", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_SUM("tip", "Tips earned"), AGG_COUNT("Tickets")]); } },
+  { id: "attendance-report", label: "Attendance Report", filters: ["dateRange", "branch", "barber", "status"], statusOptions: ["Present", "Absent", "Late"], run: (ctx) => {
+      const rows = scopeAttendance(ctx);
+      return groupReport(rows, (a) => a.barber || "—", "Barber", [AGG_COUNT("Days recorded"), { key: "present", label: "Days present", align: "right", fn: (rs) => rs.filter((r) => r.status === "Present").length }]); } },
+  { id: "productivity-report", label: "Productivity Report", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_COUNT("Services delivered"), AGG_SUM("amount", "Revenue"), AGG_AVG("amount", "Avg. ticket")]); } },
+  { id: "performance-ranking", label: "Performance Ranking", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx); const data = groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_SUM("amount", "Revenue"), AGG_COUNT("Tickets")]);
+      data.rows = data.rows.sort((a, b) => b.amountTotal - a.amountTotal).map((r, i) => ({ ...r, rank: i + 1 }));
+      data.columns = [{ key: "rank", label: "Rank", align: "right" }, ...data.columns];
+      return data; } },
+  { id: "customer-ratings", label: "Customer Ratings by Barber", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => s.rating);
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_AVG("rating", "Avg. rating"), AGG_COUNT("Ratings")], "ratingAvg"); } },
+  { id: "avg-service-time-barber", label: "Average Service Time Per Barber", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [{ key: "avgMin", label: "Avg. minutes/ticket", align: "right", fn: (rs) => {
+        const mins = rs.map((r) => (r.items || []).reduce((a, it) => { const svc = DATA.services.find((x) => x.name === it.name); return a + (svc ? svc.duration || 0 : 0); }, 0));
+        return mins.length ? Math.round(mins.reduce((a, m) => a + m, 0) / mins.length) : 0;
+      } }], "avgMin"); } },
+]},
+
+{ key: "customer", label: "Customer Reports", reports: [
+  { id: "new-customers", label: "New Customers", filters: ["dateRange", "branch"], run: (ctx) => {
+      let rows = DATA.customers;
+      if (ctx.range) rows = rows.filter((c) => inRange(c.joinDate, ctx.range));
+      if (ctx.branch && ctx.branch !== "All") rows = rows.filter((c) => c.branch === ctx.branch);
+      return rowTable([{ key: "name", label: "Customer" }, { key: "joinDate", label: "Joined", mono: true }, { key: "branch", label: "Branch" }], rows.map((c) => ({ name: c.name, joinDate: c.joinDate || "—", branch: c.branch || "—" })), ["name"], { key: "joinDate", dir: "desc" }); } },
+  { id: "returning-customers", label: "Returning Customers", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx); const byC = groupRows(rows, (s) => s.customer || "Walk-in");
+      const data = [...byC.entries()].filter(([, gr]) => gr.length > 1).map(([name, gr]) => ({ name, visits: gr.length, spend: gr.reduce((a, r) => a + (r.amount || 0), 0) }));
+      return rowTable([{ key: "name", label: "Customer" }, { key: "visits", label: "Visits", align: "right" }, { key: "spend", label: "Spend", mono: true, align: "right", render: (r) => money(r.spend) }], data, ["name"], { key: "visits", dir: "desc" }); } },
+  { id: "visit-history", label: "Customer Visit History", filters: ["dateRange", "branch", "customer"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "customer", label: "Customer" }, { key: "barber", label: "Barber" }, { key: "itemsLabel", label: "Services" }, { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }], rows, ["customer", "itemsLabel"], { key: "date", dir: "desc" }); } },
+  { id: "customer-spending", label: "Customer Spending Report", filters: ["dateRange", "branch", "customer"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.customer || "Walk-in", "Customer", [AGG_SUM("amount", "Total spend"), AGG_COUNT("Visits")]); } },
+  { id: "top-spenders", label: "Top Spending Customers", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx); const rep = groupReport(rows, (s) => s.customer || "Walk-in", "Customer", [AGG_SUM("amount", "Total spend")]);
+      rep.rows = rep.rows.sort((a, b) => b.amountTotal - a.amountTotal).slice(0, 20); return rep; } },
+  { id: "loyalty-points", label: "Customer Loyalty Points Report", filters: ["branch"], run: (ctx) => {
+      let rows = DATA.customers; if (ctx.branch && ctx.branch !== "All") rows = rows.filter((c) => c.branch === ctx.branch);
+      return rowTable([{ key: "name", label: "Customer" }, { key: "loyaltyPoints", label: "Points balance", align: "right" }, { key: "membership", label: "Membership" }], rows.map((c) => ({ name: c.name, loyaltyPoints: c.loyaltyPoints || 0, membership: c.membership || "New" })), ["name"], { key: "loyaltyPoints", dir: "desc" }); } },
+  { id: "birthday-customers", label: "Birthday Customers", filters: ["branch"], run: (ctx) => {
+      let rows = DATA.customers.filter((c) => c.birthday); if (ctx.branch && ctx.branch !== "All") rows = rows.filter((c) => c.branch === ctx.branch);
+      const thisMonth = todayStr().slice(5, 7);
+      return rowTable([{ key: "name", label: "Customer" }, { key: "birthday", label: "Birthday (MM-DD)", mono: true }, { key: "phone", label: "Phone", mono: true }],
+        rows.map((c) => ({ name: c.name, birthday: c.birthday, phone: c.phone })).sort((a, b) => (a.birthday.slice(0, 2) === thisMonth ? -1 : 1)), ["name"], { key: "birthday", dir: "asc" }); } },
+  { id: "inactive-customers", label: "Inactive Customers", filters: ["branch"], run: (ctx) => {
+      const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 45); const cutoffStr = cutoff.toISOString().slice(0, 10);
+      let names = DATA.customers.map((c) => c.name); if (ctx.branch && ctx.branch !== "All") names = DATA.customers.filter((c) => c.branch === ctx.branch).map((c) => c.name);
+      const lastVisit = new Map();
+      DATA.sales.filter((s) => !s.voided).forEach((s) => { const cur = lastVisit.get(s.customer); if (!cur || s.date > cur) lastVisit.set(s.customer, s.date); });
+      const data = names.map((name) => ({ name, lastVisit: lastVisit.get(name) || "Never" })).filter((r) => r.lastVisit === "Never" || r.lastVisit < cutoffStr);
+      return rowTable([{ key: "name", label: "Customer" }, { key: "lastVisit", label: "Last visit", mono: true }], data, ["name"], { key: "lastVisit", dir: "asc" }); } },
+  { id: "customer-retention", label: "Customer Retention Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales({ ...ctx, range: null }); const byC = groupRows(rows, (s) => s.customer || "Walk-in");
+      const total = byC.size || 1; const returning = [...byC.values()].filter((gr) => gr.length > 1).length;
+      const data = [{ name: "One-time customers", count: total - returning }, { name: "Returning customers", count: returning }];
+      return rowTable([{ key: "name", label: "Segment" }, { key: "count", label: "Customers", align: "right" }], data, ["name"], { key: "count", dir: "desc" }); } },
+  { id: "customer-demographics", label: "Customer Demographics", filters: ["branch"], run: (ctx) => {
+      let rows = DATA.customers; if (ctx.branch && ctx.branch !== "All") rows = rows.filter((c) => c.branch === ctx.branch);
+      return groupReport(rows, (c) => c.membership || "New", "Membership tier", [AGG_COUNT("Customers")]); } },
+]},
+
+{ key: "appointment", label: "Appointment Reports", reports: [
+  { id: "upcoming-appts", label: "Upcoming Appointments", filters: ["branch", "barber"], run: (ctx) => {
+      const rows = scopeAppointments({ ...ctx, range: null }).filter((a) => a.date >= todayStr() && a.status !== "Cancelled" && a.status !== "Completed");
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "time", label: "Time", mono: true }, { key: "customer", label: "Customer" }, { key: "barber", label: "Barber" }, { key: "service", label: "Service" }, { key: "status", label: "Status" }], rows, ["customer", "barber"], { key: "date", dir: "asc" }); } },
+  { id: "completed-appts", label: "Completed Appointments", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeAppointments({ ...ctx, status: "Completed" });
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "customer", label: "Customer" }, { key: "barber", label: "Barber" }, { key: "service", label: "Service" }], rows, ["customer", "barber"], { key: "date", dir: "desc" }); } },
+  { id: "cancelled-appts", label: "Cancelled Appointments", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeAppointments({ ...ctx, status: "Cancelled" });
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "customer", label: "Customer" }, { key: "barber", label: "Barber" }, { key: "service", label: "Service" }], rows, ["customer", "barber"], { key: "date", dir: "desc" }); } },
+  { id: "no-show", label: "No-Show Report", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeAppointments({ ...ctx, status: "No-show" });
+      return groupReport(rows, (a) => a.customer || "—", "Customer", [AGG_COUNT("No-shows")], "count"); } },
+  { id: "appt-source", label: "Appointment Source Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeAppointments(ctx);
+      return groupReport(rows, (a) => a.source || "Walk-in", "Source", [AGG_COUNT("Appointments")]); } },
+  { id: "appt-conversion", label: "Appointment Conversion Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeAppointments(ctx); const total = rows.length || 1;
+      const completed = rows.filter((a) => a.status === "Completed").length;
+      const data = [{ name: "Completed", count: completed, rate: Math.round((completed / total) * 100) + "%" },
+        { name: "No-show", count: rows.filter((a) => a.status === "No-show").length, rate: Math.round((rows.filter((a) => a.status === "No-show").length / total) * 100) + "%" },
+        { name: "Cancelled", count: rows.filter((a) => a.status === "Cancelled").length, rate: Math.round((rows.filter((a) => a.status === "Cancelled").length / total) * 100) + "%" }];
+      return rowTable([{ key: "name", label: "Outcome" }, { key: "count", label: "Count", align: "right" }, { key: "rate", label: "% of total", align: "right" }], data, ["name"], { key: "count", dir: "desc" }); } },
+  { id: "barber-schedule", label: "Barber Schedule Report", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeAppointments(ctx);
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "time", label: "Time", mono: true }, { key: "barber", label: "Barber" }, { key: "customer", label: "Customer" }, { key: "service", label: "Service" }, { key: "status", label: "Status" }], rows, ["barber", "customer"], { key: "date", dir: "asc" }); } },
+  { id: "booking-trends", label: "Booking Trends", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeAppointments(ctx);
+      return groupReport(rows, (a) => new Date(a.date + "T00:00:00").toLocaleDateString("en-KE", { weekday: "long" }), "Day of week", [AGG_COUNT("Bookings")], "count"); } },
+]},
+
+{ key: "inventory", label: "Inventory Reports", reports: [
+  { id: "current-stock", label: "Current Stock Levels", filters: ["branch", "supplier", "product"], run: (ctx) => {
+      const rows = scopeInventory(ctx);
+      return rowTable([{ key: "name", label: "Item" }, { key: "category", label: "Category" }, { key: "stock", label: "In stock", align: "right" }, { key: "reorder", label: "Reorder at", align: "right" }], rows, ["name"], { key: "stock", dir: "asc" }); } },
+  { id: "low-stock", label: "Low Stock Report", filters: ["branch", "supplier"], run: (ctx) => {
+      const rows = scopeInventory(ctx).filter((i) => computeInvStatus(i) !== "OK" && (i.stock || 0) > 0);
+      return rowTable([{ key: "name", label: "Item" }, { key: "stock", label: "In stock", align: "right" }, { key: "reorder", label: "Reorder at", align: "right" }], rows, ["name"], { key: "stock", dir: "asc" }); } },
+  { id: "out-of-stock", label: "Out of Stock Report", filters: ["branch", "supplier"], run: (ctx) => {
+      const rows = scopeInventory(ctx).filter((i) => (i.stock || 0) <= 0);
+      return rowTable([{ key: "name", label: "Item" }, { key: "supplier", label: "Supplier" }], rows, ["name"], { key: "name", dir: "asc" }); } },
+  { id: "stock-movement", label: "Stock Movement Report", filters: ["dateRange", "branch", "product", "status"], statusOptions: ["Received", "Sold", "Adjusted", "Damaged", "Expired"], run: (ctx) => {
+      const rows = scopeStockMovements(ctx);
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "item", label: "Item" }, { key: "type", label: "Type" }, { key: "qty", label: "Qty", align: "right" }, { key: "note", label: "Note" }], rows, ["item"], { key: "date", dir: "desc" }); } },
+  { id: "product-usage", label: "Product Usage Report", filters: ["dateRange", "branch", "product"], run: (ctx) => {
+      const rows = scopeStockMovements({ ...ctx, status: "Sold" });
+      return groupReport(rows, (m) => m.item, "Product", [{ key: "qty", label: "Units used", align: "right", fn: (rs) => rs.reduce((a, r) => a + (r.qty || 0), 0) }]); } },
+  { id: "stock-adjustment", label: "Stock Adjustment Report", filters: ["dateRange", "branch", "product"], run: (ctx) => {
+      const rows = scopeStockMovements({ ...ctx, status: "Adjusted" });
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "item", label: "Item" }, { key: "qty", label: "Qty change", align: "right" }, { key: "note", label: "Reason" }], rows, ["item"], { key: "date", dir: "desc" }); } },
+  { id: "damaged-products", label: "Damaged Products Report", filters: ["dateRange", "branch", "product"], run: (ctx) => {
+      const rows = scopeStockMovements({ ...ctx, status: "Damaged" });
+      return groupReport(rows, (m) => m.item, "Product", [{ key: "qty", label: "Units damaged", align: "right", fn: (rs) => rs.reduce((a, r) => a + (r.qty || 0), 0) }]); } },
+  { id: "expired-products", label: "Expired Products Report", filters: ["branch", "supplier"], run: (ctx) => {
+      const rows = scopeInventory(ctx).filter((i) => i.expiryDate && i.expiryDate <= todayStr());
+      return rowTable([{ key: "name", label: "Item" }, { key: "expiryDate", label: "Expired on", mono: true }, { key: "stock", label: "Stock on hand", align: "right" }], rows, ["name"], { key: "expiryDate", dir: "asc" }); } },
+  { id: "inventory-valuation", label: "Inventory Valuation", filters: ["branch", "supplier"], run: (ctx) => {
+      const rows = scopeInventory(ctx);
+      return rowTable([{ key: "name", label: "Item" }, { key: "stock", label: "Stock", align: "right" }, { key: "unitCost", label: "Unit cost", mono: true, align: "right", render: (r) => money(r.unitCost) }, { key: "value", label: "Total value", mono: true, align: "right", render: (r) => money(r.value) }],
+        rows.map((i) => ({ name: i.name, stock: i.stock || 0, unitCost: i.unitCost || 0, value: (i.stock || 0) * (i.unitCost || 0) })), ["name"], { key: "value", dir: "desc" }); } },
+  { id: "fast-moving", label: "Fast Moving Products", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeStockMovements({ ...ctx, status: "Sold" }); const rep = groupReport(rows, (m) => m.item, "Product", [{ key: "qty", label: "Units sold", align: "right", fn: (rs) => rs.reduce((a, r) => a + (r.qty || 0), 0) }]);
+      rep.rows = rep.rows.sort((a, b) => b.qty - a.qty).slice(0, 15); return rep; } },
+  { id: "slow-moving", label: "Slow Moving Products", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeStockMovements({ ...ctx, status: "Sold" }); const sold = new Map(); rows.forEach((m) => sold.set(m.item, (sold.get(m.item) || 0) + (m.qty || 0)));
+      const data = DATA.inventory.map((i) => ({ name: i.name, qty: sold.get(i.name) || 0 })).sort((a, b) => a.qty - b.qty).slice(0, 15);
+      return rowTable([{ key: "name", label: "Product" }, { key: "qty", label: "Units sold", align: "right" }], data, ["name"], { key: "qty", dir: "asc" }); } },
+]},
+
+{ key: "purchase", label: "Purchase Reports", reports: [
+  { id: "purchases-supplier", label: "Purchases by Supplier", filters: ["dateRange", "branch", "supplier"], run: (ctx) => {
+      const rows = scopePurchases(ctx);
+      return groupReport(rows, (p) => p.supplier, "Supplier", [AGG_SUM("total", "Total purchased"), AGG_COUNT("Orders")]); } },
+  { id: "purchase-history", label: "Purchase History", filters: ["dateRange", "branch", "supplier", "product"], run: (ctx) => {
+      const rows = scopePurchases(ctx);
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "supplier", label: "Supplier" }, { key: "item", label: "Item" }, { key: "qty", label: "Qty", align: "right" }, { key: "total", label: "Total", mono: true, align: "right", render: (r) => money(r.total) }], rows, ["supplier", "item"], { key: "date", dir: "desc" }); } },
+  { id: "outstanding-balances", label: "Outstanding Supplier Balances", filters: ["branch"], run: (ctx) => {
+      return rowTable([{ key: "name", label: "Supplier" }, { key: "outstanding", label: "Outstanding", mono: true, align: "right", render: (r) => money(r.outstanding) }], DATA.suppliers.map((s) => ({ name: s.name, outstanding: s.outstanding || 0 })), ["name"], { key: "outstanding", dir: "desc" }); } },
+  { id: "supplier-performance", label: "Supplier Performance", filters: ["dateRange", "branch", "supplier"], run: (ctx) => {
+      const rows = scopePurchases(ctx);
+      return groupReport(rows, (p) => p.supplier, "Supplier", [AGG_COUNT("Orders"), AGG_SUM("total", "Total value"), { key: "returns", label: "Returns", align: "right", fn: (rs) => rs.filter((r) => r.status === "Returned").length }]); } },
+  { id: "purchase-cost", label: "Purchase Cost Analysis", filters: ["dateRange", "branch", "product"], run: (ctx) => {
+      const rows = scopePurchases(ctx);
+      return groupReport(rows, (p) => p.item, "Product", [AGG_AVG("unitCost", "Avg. unit cost"), AGG_SUM("total", "Total spent")]); } },
+  { id: "purchase-returns", label: "Purchase Returns", filters: ["dateRange", "branch", "supplier"], run: (ctx) => {
+      const rows = scopePurchases({ ...ctx, status: "Returned" });
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "supplier", label: "Supplier" }, { key: "item", label: "Item" }, { key: "total", label: "Value", mono: true, align: "right", render: (r) => money(r.total) }], rows, ["supplier", "item"], { key: "date", dir: "desc" }); } },
+]},
+
+{ key: "financial", label: "Financial Reports", reports: [
+  { id: "profit-loss", label: "Profit & Loss Statement", filters: ["dateRange", "branch"], run: (ctx) => {
+      const sales = scopeSales(ctx).reduce((a, s) => a + (s.amount || 0), 0);
+      const expenses = scopeExpenses(ctx).reduce((a, e) => a + (e.amount || 0), 0);
+      const purchases = scopePurchases(ctx).reduce((a, p) => a + (p.total || 0), 0);
+      const data = [{ name: "Revenue (sales)", total: sales }, { name: "Cost of goods (purchases)", total: -purchases }, { name: "Operating expenses", total: -expenses }, { name: "Net profit", total: sales - purchases - expenses }];
+      return rowTable([{ key: "name", label: "Line item" }, { key: "total", label: "Amount", mono: true, align: "right", render: (r) => money(r.total) }], data, [], { key: "name", dir: "asc" }); } },
+  { id: "income-report", label: "Income Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.date.slice(0, 7), "Month", [AGG_SUM("amount", "Income")]); } },
+  { id: "expense-report-fin", label: "Expense Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeExpenses(ctx);
+      return groupReport(rows, (e) => e.category || "Other", "Category", [AGG_SUM("amount", "Total")]); } },
+  { id: "gross-profit", label: "Gross Profit Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const sales = scopeSales(ctx).reduce((a, s) => a + (s.amount || 0), 0);
+      const purchases = scopePurchases(ctx).reduce((a, p) => a + (p.total || 0), 0);
+      return rowTable([{ key: "name", label: "Line item" }, { key: "total", label: "Amount", mono: true, align: "right", render: (r) => money(r.total) }],
+        [{ name: "Revenue", total: sales }, { name: "Cost of goods", total: purchases }, { name: "Gross profit", total: sales - purchases }], [], { key: "name", dir: "asc" }); } },
+  { id: "net-profit", label: "Net Profit Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const sales = scopeSales(ctx).reduce((a, s) => a + (s.amount || 0), 0);
+      const expenses = scopeExpenses(ctx).reduce((a, e) => a + (e.amount || 0), 0);
+      const purchases = scopePurchases(ctx).reduce((a, p) => a + (p.total || 0), 0);
+      return rowTable([{ key: "name", label: "Line item" }, { key: "total", label: "Amount", mono: true, align: "right", render: (r) => money(r.total) }],
+        [{ name: "Net profit", total: sales - expenses - purchases }], [], { key: "name", dir: "asc" }); } },
+  { id: "cash-flow", label: "Cash Flow Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const salesRows = scopeSales(ctx), expenseRows = scopeExpenses(ctx);
+      const days = new Set([...salesRows.map((s) => s.date), ...expenseRows.map((e) => e.date)]);
+      const data = [...days].sort().map((d) => ({ name: d, inflow: salesRows.filter((s) => s.date === d).reduce((a, s) => a + (s.amount || 0), 0), outflow: expenseRows.filter((e) => e.date === d).reduce((a, e) => a + (e.amount || 0), 0) }))
+        .map((r) => ({ ...r, net: r.inflow - r.outflow }));
+      return rowTable([{ key: "name", label: "Date", mono: true }, { key: "inflow", label: "Cash in", mono: true, align: "right", render: (r) => money(r.inflow) }, { key: "outflow", label: "Cash out", mono: true, align: "right", render: (r) => money(r.outflow) }, { key: "net", label: "Net", mono: true, align: "right", render: (r) => money(r.net) }], data, [], { key: "name", dir: "desc" }); } },
+  { id: "balance-sheet", label: "Balance Sheet (simplified)", filters: ["branch"], run: (ctx) => {
+      const inventoryValue = scopeInventory(ctx).reduce((a, i) => a + (i.stock || 0) * (i.unitCost || 0), 0);
+      const payables = DATA.suppliers.reduce((a, s) => a + (s.outstanding || 0), 0);
+      const cash = DATA.sales.filter((s) => !s.voided).reduce((a, s) => a + (s.amount || 0), 0) - DATA.expenses.reduce((a, e) => a + (e.amount || 0), 0);
+      const data = [{ name: "Cash (est.)", total: cash }, { name: "Inventory on hand", total: inventoryValue }, { name: "Accounts payable (suppliers)", total: -payables }, { name: "Estimated net position", total: cash + inventoryValue - payables }];
+      return rowTable([{ key: "name", label: "Line item" }, { key: "total", label: "Amount", mono: true, align: "right", render: (r) => money(r.total) }], data, [], { key: "name", dir: "asc" }); } },
+  { id: "vat-report", label: "VAT / Tax Report (16% VAT, est.)", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx); const gross = rows.reduce((a, s) => a + (s.amount || 0), 0); const vat = Math.round(gross - gross / 1.16);
+      return rowTable([{ key: "name", label: "Line item" }, { key: "total", label: "Amount", mono: true, align: "right", render: (r) => money(r.total) }],
+        [{ name: "Gross sales (VAT-inclusive)", total: gross }, { name: "Net sales (excl. VAT)", total: gross - vat }, { name: "Estimated VAT (16%)", total: vat }], [], { key: "name", dir: "asc" }); } },
+  { id: "outstanding-payments", label: "Outstanding Payments", filters: ["branch"], run: (ctx) => {
+      return rowTable([{ key: "name", label: "Supplier" }, { key: "outstanding", label: "Outstanding", mono: true, align: "right", render: (r) => money(r.outstanding) }], DATA.suppliers.filter((s) => (s.outstanding || 0) > 0).map((s) => ({ name: s.name, outstanding: s.outstanding })), ["name"], { key: "outstanding", dir: "desc" }); } },
+  { id: "daily-cash-summary", label: "Daily Cash Summary", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales({ ...ctx, paymentMethod: "Cash" });
+      return groupReport(rows, (s) => s.date, "Date", [AGG_SUM("amount", "Cash received"), AGG_COUNT("Transactions")]); } },
+]},
+
+{ key: "expense", label: "Expense Reports", reports: [
+  { id: "expense-by-category", label: "Expenses by Category", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeExpenses(ctx); return groupReport(rows, (e) => e.category || "Other", "Category", [AGG_SUM("amount", "Total")]); } },
+  { id: "daily-expenses", label: "Daily Expenses", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeExpenses({ ...ctx, range: ctx.range || computeRangePreset("Today") }); return groupReport(rows, (e) => e.date, "Date", [AGG_SUM("amount", "Total")]); } },
+  { id: "monthly-expenses", label: "Monthly Expenses", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeExpenses(ctx); return groupReport(rows, (e) => e.date.slice(0, 7), "Month", [AGG_SUM("amount", "Total")]); } },
+  { id: "utility-expenses", label: "Utility Expenses", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeExpenses(ctx).filter((e) => e.category === "Utilities"); return groupReport(rows, (e) => e.date.slice(0, 7), "Month", [AGG_SUM("amount", "Total")]); } },
+  { id: "rent-report", label: "Rent Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeExpenses(ctx).filter((e) => e.category === "Rent");
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "desc", label: "Description" }, { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }], rows, ["desc"], { key: "date", dir: "desc" }); } },
+  { id: "salaries-report", label: "Salaries Report", filters: ["branch"], run: (ctx) => {
+      return rowTable([{ key: "name", label: "Employee" }, { key: "base", label: "Base salary", mono: true, align: "right", render: (r) => money(r.base) }], DATA.barbers.map((b) => ({ name: b.name, base: b.baseSalary || 0 })), ["name"], { key: "base", dir: "desc" }); } },
+  { id: "marketing-expenses", label: "Marketing Expenses", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeExpenses(ctx).filter((e) => e.category === "Marketing"); return groupReport(rows, (e) => e.date.slice(0, 7), "Month", [AGG_SUM("amount", "Total")]); } },
+  { id: "equipment-maintenance", label: "Equipment Maintenance Costs", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeExpenses(ctx).filter((e) => e.category === "Equipment Maintenance");
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "desc", label: "Description" }, { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }], rows, ["desc"], { key: "date", dir: "desc" }); } },
+]},
+
+{ key: "productSales", label: "Product Sales Reports", reports: [
+  { id: "best-selling-products", label: "Best Selling Products", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeStockMovements({ ...ctx, status: "Sold" }); const rep = groupReport(rows, (m) => m.item, "Product", [{ key: "qty", label: "Units sold", align: "right", fn: (rs) => rs.reduce((a, r) => a + (r.qty || 0), 0) }]);
+      rep.rows = rep.rows.sort((a, b) => b.qty - a.qty).slice(0, 15); return rep; } },
+  { id: "worst-selling-products", label: "Worst Selling Products", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeStockMovements({ ...ctx, status: "Sold" }); const sold = new Map(); rows.forEach((m) => sold.set(m.item, (sold.get(m.item) || 0) + (m.qty || 0)));
+      const data = DATA.inventory.map((i) => ({ name: i.name, qty: sold.get(i.name) || 0 })).sort((a, b) => a.qty - b.qty).slice(0, 15);
+      return rowTable([{ key: "name", label: "Product" }, { key: "qty", label: "Units sold", align: "right" }], data, ["name"], { key: "qty", dir: "asc" }); } },
+  { id: "product-profitability", label: "Product Profitability", filters: ["dateRange", "branch", "product"], run: (ctx) => {
+      const rows = scopeStockMovements({ ...ctx, status: "Sold" });
+      const data = DATA.inventory.map((i) => {
+        const qty = rows.filter((m) => m.item === i.name).reduce((a, m) => a + (m.qty || 0), 0);
+        const sellPrice = Math.round((i.unitCost || 0) * 1.6);
+        return { name: i.name, qty, profit: qty * (sellPrice - (i.unitCost || 0)) };
+      });
+      return rowTable([{ key: "name", label: "Product" }, { key: "qty", label: "Units sold", align: "right" }, { key: "profit", label: "Est. profit", mono: true, align: "right", render: (r) => money(r.profit) }], data, ["name"], { key: "profit", dir: "desc" }); } },
+  { id: "product-revenue", label: "Product Revenue", filters: ["dateRange", "branch", "product"], run: (ctx) => {
+      const rows = scopeStockMovements({ ...ctx, status: "Sold" });
+      const data = DATA.inventory.map((i) => { const qty = rows.filter((m) => m.item === i.name).reduce((a, m) => a + (m.qty || 0), 0); return { name: i.name, revenue: qty * Math.round((i.unitCost || 0) * 1.6) }; });
+      return rowTable([{ key: "name", label: "Product" }, { key: "revenue", label: "Revenue", mono: true, align: "right", render: (r) => money(r.revenue) }], data, ["name"], { key: "revenue", dir: "desc" }); } },
+  { id: "product-margin", label: "Product Margin Report", filters: ["product"], run: (ctx) => {
+      let rows = DATA.inventory; if (ctx.product && ctx.product !== "All") rows = rows.filter((i) => i.name === ctx.product);
+      return rowTable([{ key: "name", label: "Product" }, { key: "cost", label: "Unit cost", mono: true, align: "right", render: (r) => money(r.cost) }, { key: "sell", label: "Est. sell price", mono: true, align: "right", render: (r) => money(r.sell) }, { key: "margin", label: "Margin %", align: "right" }],
+        rows.map((i) => { const cost = i.unitCost || 0, sell = Math.round(cost * 1.6); return { name: i.name, cost, sell, margin: sell ? Math.round(((sell - cost) / sell) * 100) + "%" : "0%" }; }), ["name"], { key: "name", dir: "asc" }); } },
+  { id: "product-returns", label: "Product Returns", filters: ["dateRange", "branch", "product"], run: (ctx) => {
+      const rows = scopeStockMovements({ ...ctx, status: "Adjusted" }).filter((m) => (m.note || "").toLowerCase().includes("return"));
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "item", label: "Item" }, { key: "qty", label: "Qty", align: "right" }, { key: "note", label: "Note" }], rows, ["item"], { key: "date", dir: "desc" }); } },
+]},
+
+{ key: "payroll", label: "Commission & Payroll Reports", reports: [
+  { id: "barber-commission", label: "Barber Commission Report", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [{ key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission), fn: (rs) => { const b = DATA.barbers.find((x) => x.name === rs[0]?.barber); const rate = (b && b.commissionRate) || 30; return Math.round(rs.reduce((a, r) => a + (r.amount || 0), 0) * (rate / 100)); } }]); } },
+  { id: "payroll-summary", label: "Payroll Summary", filters: ["branch"], run: () => {
+      const rows = DATA.barbers.map((b) => { const rev = DATA.sales.filter((s) => s.barber === b.name && !s.voided).reduce((a, s) => a + (s.amount || 0), 0); const commission = Math.round(rev * ((b.commissionRate || 0) / 100)); const base = b.baseSalary || 0; const deductions = b.deductions || 0; return { name: b.name, base, commission, deductions, net: base + commission - deductions }; });
+      return rowTable([{ key: "name", label: "Employee" }, { key: "base", label: "Base", mono: true, align: "right", render: (r) => money(r.base) }, { key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission) }, { key: "deductions", label: "Deductions", mono: true, align: "right", render: (r) => money(r.deductions) }, { key: "net", label: "Net pay", mono: true, align: "right", render: (r) => money(r.net) }], rows, ["name"], { key: "net", dir: "desc" }); } },
+  { id: "overtime-report", label: "Overtime Report", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeAttendance({ ...ctx, status: "Present" });
+      return groupReport(rows, (a) => a.barber, "Barber", [{ key: "extraDays", label: "Extra days worked (est.)", align: "right", fn: (rs) => Math.max(0, rs.length - 26) }]); } },
+  { id: "bonuses-report", label: "Bonuses Report", filters: ["branch", "barber"], run: (ctx) => {
+      const rows = DATA.barbers.map((b) => { const rev = DATA.sales.filter((s) => s.barber === b.name && !s.voided).reduce((a, s) => a + (s.amount || 0), 0); return { name: b.name, bonus: rev > 100000 ? Math.round(rev * 0.02) : 0 }; });
+      return rowTable([{ key: "name", label: "Barber" }, { key: "bonus", label: "Performance bonus", mono: true, align: "right", render: (r) => money(r.bonus) }], rows, ["name"], { key: "bonus", dir: "desc" }); } },
+  { id: "deductions-report", label: "Deductions Report", filters: ["branch", "barber"], run: () => {
+      return rowTable([{ key: "name", label: "Employee" }, { key: "deductions", label: "Deductions", mono: true, align: "right", render: (r) => money(r.deductions) }], DATA.barbers.map((b) => ({ name: b.name, deductions: b.deductions || 0 })), ["name"], { key: "deductions", dir: "desc" }); } },
+  { id: "net-salary", label: "Net Salary Report", filters: ["branch", "barber"], run: () => {
+      const rows = DATA.barbers.map((b) => { const rev = DATA.sales.filter((s) => s.barber === b.name && !s.voided).reduce((a, s) => a + (s.amount || 0), 0); const commission = Math.round(rev * ((b.commissionRate || 0) / 100)); return { name: b.name, net: (b.baseSalary || 0) + commission - (b.deductions || 0) }; });
+      return rowTable([{ key: "name", label: "Employee" }, { key: "net", label: "Net salary", mono: true, align: "right", render: (r) => money(r.net) }], rows, ["name"], { key: "net", dir: "desc" }); } },
+]},
+
+{ key: "loyalty", label: "Loyalty & Membership Reports", reports: [
+  { id: "active-members", label: "Active Members", filters: ["branch"], run: (ctx) => {
+      let rows = DATA.customers.filter((c) => c.membership && c.membership !== "New"); if (ctx.branch && ctx.branch !== "All") rows = rows.filter((c) => c.branch === ctx.branch);
+      return rowTable([{ key: "name", label: "Customer" }, { key: "membership", label: "Tier" }, { key: "membershipExpiry", label: "Expires", mono: true }], rows.map((c) => ({ name: c.name, membership: c.membership, membershipExpiry: c.membershipExpiry || "—" })), ["name"], { key: "name", dir: "asc" }); } },
+  { id: "membership-revenue", label: "Membership Revenue", filters: ["dateRange", "branch"], run: (ctx) => {
+      const memberNames = new Set(DATA.customers.filter((c) => c.membership && c.membership !== "New").map((c) => c.name));
+      const rows = scopeSales(ctx).filter((s) => memberNames.has(s.customer));
+      return groupReport(rows, (s) => DATA.customers.find((c) => c.name === s.customer)?.membership || "—", "Membership tier", [AGG_SUM("amount", "Revenue")]); } },
+  { id: "loyalty-earned", label: "Loyalty Points Earned", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => s.customer || "Walk-in", "Customer", [{ key: "points", label: "Points earned", align: "right", fn: (rs) => rs.reduce((a, r) => a + Math.floor((r.amount || 0) / 100), 0) }], "points"); } },
+  { id: "loyalty-redeemed", label: "Loyalty Points Redeemed", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => s.pointsRedeemed);
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "customer", label: "Customer" }, { key: "pointsRedeemed", label: "Points redeemed", align: "right" }], rows, ["customer"], { key: "date", dir: "desc" }); } },
+  { id: "membership-expiry", label: "Membership Expiry Report", filters: ["branch"], run: (ctx) => {
+      let rows = DATA.customers.filter((c) => c.membershipExpiry); if (ctx.branch && ctx.branch !== "All") rows = rows.filter((c) => c.branch === ctx.branch);
+      return rowTable([{ key: "name", label: "Customer" }, { key: "membership", label: "Tier" }, { key: "membershipExpiry", label: "Expires", mono: true }], rows, ["name"], { key: "membershipExpiry", dir: "asc" }); } },
+  { id: "membership-renewals", label: "Membership Renewals", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = DATA.customers.filter((c) => c.membership && c.membership !== "New" && c.membershipExpiry && c.membershipExpiry >= todayStr());
+      return rowTable([{ key: "name", label: "Customer" }, { key: "membership", label: "Tier" }, { key: "membershipExpiry", label: "Renewed/valid until", mono: true }], rows, ["name"], { key: "membershipExpiry", dir: "desc" }); } },
+]},
+
+{ key: "discount", label: "Discount & Promotion Reports", reports: [
+  { id: "discounts-given", label: "Discounts Given", filters: ["dateRange", "branch", "employee"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => s.discount > 0);
+      return groupReport(rows, (s) => s.date, "Date", [AGG_SUM("discount", "Total discounted")], "discountTotal"); } },
+  { id: "promo-performance", label: "Promotional Campaign Performance", filters: ["dateRange"], run: (ctx) => {
+      return rowTable([{ key: "name", label: "Promotion" }, { key: "type", label: "Type" }, { key: "value", label: "Value", align: "right" }, { key: "usageCount", label: "Times used", align: "right" }], DATA.promotions.map((p) => ({ name: p.name, type: p.type, value: p.type === "Percentage" ? p.value + "%" : money(p.value), usageCount: p.usageCount || 0 })), ["name"], { key: "usageCount", dir: "desc" }); } },
+  { id: "coupon-usage", label: "Coupon Usage", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => s.promo);
+      return groupReport(rows, (s) => s.promo, "Coupon/promo", [AGG_COUNT("Times used"), AGG_SUM("discount", "Total discounted")]); } },
+  { id: "discount-by-employee", label: "Discount by Employee", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => s.discount > 0);
+      return groupReport(rows, (s) => s.cashier || "—", "Employee", [AGG_SUM("discount", "Total discounted"), AGG_COUNT("Discounted sales")]); } },
+  { id: "revenue-lost-discounts", label: "Revenue Lost Through Discounts", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx); const total = rows.reduce((a, s) => a + (s.discount || 0), 0);
+      return rowTable([{ key: "name", label: "Metric" }, { key: "total", label: "Amount", mono: true, align: "right", render: (r) => money(r.total) }], [{ name: "Total discounts given", total }], [], { key: "name", dir: "asc" }); } },
+]},
+
+{ key: "cash", label: "Cash & Banking Reports", reports: [
+  { id: "cash-drawer", label: "Cash Drawer Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales({ ...ctx, paymentMethod: "Cash" });
+      return groupReport(rows, (s) => s.date, "Date", [AGG_SUM("amount", "Cash sales"), AGG_COUNT("Transactions")]); } },
+  { id: "cash-reconciliation", label: "Cash Reconciliation", filters: ["dateRange", "branch"], run: (ctx) => {
+      const cashSales = scopeSales({ ...ctx, paymentMethod: "Cash" });
+      const bySale = groupRows(cashSales, (s) => s.date);
+      const byDeposit = groupRows(scopeDeposits(ctx).filter((d) => d.method === "Cash"), (d) => d.date);
+      const days = new Set([...bySale.keys(), ...byDeposit.keys()]);
+      const data = [...days].sort().map((d) => { const sales = (bySale.get(d) || []).reduce((a, r) => a + (r.amount || 0), 0); const deposited = (byDeposit.get(d) || []).reduce((a, r) => a + (r.amount || 0), 0); return { name: d, sales, deposited, diff: sales - deposited }; });
+      return rowTable([{ key: "name", label: "Date", mono: true }, { key: "sales", label: "Cash sales", mono: true, align: "right", render: (r) => money(r.sales) }, { key: "deposited", label: "Deposited", mono: true, align: "right", render: (r) => money(r.deposited) }, { key: "diff", label: "Difference", mono: true, align: "right", render: (r) => money(r.diff) }], data, [], { key: "name", dir: "desc" }); } },
+  { id: "bank-deposits", label: "Bank Deposits", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeDeposits(ctx).filter((d) => d.method === "Bank");
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }, { key: "reference", label: "Reference", mono: true }], rows, ["reference"], { key: "date", dir: "desc" }); } },
+  { id: "mpesa-collections", label: "M-Pesa Collections", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales({ ...ctx, paymentMethod: "M-Pesa" });
+      return groupReport(rows, (s) => s.date, "Date", [AGG_SUM("amount", "M-Pesa collected"), AGG_COUNT("Transactions")]); } },
+  { id: "card-payments", label: "Card Payments", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales({ ...ctx, paymentMethod: "Card" });
+      return groupReport(rows, (s) => s.date, "Date", [AGG_SUM("amount", "Card collected"), AGG_COUNT("Transactions")]); } },
+  { id: "payment-method-summary", label: "Payment Method Summary", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx); return groupReport(rows, (s) => s.method || "—", "Method", [AGG_SUM("amount", "Total"), AGG_COUNT("Transactions")]); } },
+]},
+
+{ key: "operational", label: "Operational Reports", reports: [
+  { id: "daily-business-summary", label: "Daily Business Summary", filters: ["dateRange", "branch"], run: (ctx) => {
+      const range = ctx.range || computeRangePreset("Today");
+      const sales = scopeSales({ ...ctx, range }); const appts = scopeAppointments({ ...ctx, range }); const expenses = scopeExpenses({ ...ctx, range });
+      const data = [{ name: "Revenue", total: sales.reduce((a, s) => a + (s.amount || 0), 0) }, { name: "Transactions", total: sales.length }, { name: "Appointments", total: appts.length }, { name: "Expenses", total: expenses.reduce((a, e) => a + (e.amount || 0), 0) }];
+      return rowTable([{ key: "name", label: "Metric" }, { key: "total", label: "Value", mono: true, align: "right" }], data, [], { key: "name", dir: "asc" }); } },
+  { id: "opening-closing", label: "Opening vs Closing Balance (est.)", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx); const cashByDay = groupRows(rows.filter((s) => s.method === "Cash"), (s) => s.date);
+      const expByDay = groupRows(scopeExpenses(ctx).filter((e) => true), (e) => e.date);
+      const days = [...new Set([...cashByDay.keys()])].sort(); let running = 0;
+      const data = days.map((d) => { const inflow = (cashByDay.get(d) || []).reduce((a, r) => a + (r.amount || 0), 0); const outflow = (expByDay.get(d) || []).reduce((a, r) => a + (r.amount || 0), 0); const opening = running; running = opening + inflow - outflow; return { name: d, opening, closing: running }; });
+      return rowTable([{ key: "name", label: "Date", mono: true }, { key: "opening", label: "Opening", mono: true, align: "right", render: (r) => money(r.opening) }, { key: "closing", label: "Closing", mono: true, align: "right", render: (r) => money(r.closing) }], data, [], { key: "name", dir: "desc" }); } },
+  { id: "staff-attendance", label: "Staff Attendance", filters: ["dateRange", "branch", "barber", "status"], statusOptions: ["Present", "Absent", "Late"], run: (ctx) => scopeAttendanceReport(ctx) },
+  { id: "equipment-schedule", label: "Equipment Maintenance Schedule", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeExpenses(ctx).filter((e) => e.category === "Equipment Maintenance");
+      return rowTable([{ key: "date", label: "Date serviced", mono: true }, { key: "desc", label: "Equipment / work done" }, { key: "amount", label: "Cost", mono: true, align: "right", render: (r) => money(r.amount) }], rows, ["desc"], { key: "date", dir: "desc" }); } },
+  { id: "waiting-time", label: "Customer Waiting Time", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
+      const rows = scopeAppointments(ctx).filter((a) => typeof a.waitMinutes === "number");
+      return groupReport(rows, (a) => a.barber || "—", "Barber", [AGG_AVG("waitMinutes", "Avg. wait (min)")], "waitMinutesAvg"); } },
+  { id: "queue-analysis", label: "Queue Analysis (walk-ins by hour)", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeAppointments(ctx).filter((a) => a.type === "Walk-in");
+      return groupReport(rows, (a) => (a.time || "00:00").slice(0, 2) + ":00", "Hour", [AGG_COUNT("Walk-ins")], "count"); } },
+  { id: "busy-days", label: "Busy Days Report", filters: ["dateRange", "branch"], run: (ctx) => {
+      const rows = scopeSales(ctx);
+      return groupReport(rows, (s) => new Date(s.date + "T00:00:00").toLocaleDateString("en-KE", { weekday: "long" }), "Day of week", [AGG_COUNT("Transactions"), AGG_SUM("amount", "Revenue")], "count"); } },
+]},
+
+{ key: "audit", label: "Audit & Security Reports", reports: [
+  { id: "user-activity", label: "User Activity Log", filters: ["dateRange", "employee"], run: (ctx) => {
+      const rows = DATA.audit.filter((a) => !ctx.range || inRange((a.createdAt && a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.ms)).toISOString().slice(0, 10), ctx.range)).filter((a) => fIncludes(a, "user", ctx.employee));
+      return rowTable([{ key: "ms", label: "Time", mono: true, render: (r) => fmtAuditTime(r) }, { key: "user", label: "User" }, { key: "action", label: "Action" }], rows, ["user", "action"], { key: "ms", dir: "desc" }); } },
+  { id: "login-history", label: "Login History", filters: ["dateRange", "employee"], run: (ctx) => {
+      const rows = DATA.audit.filter((a) => (a.action || "").includes("Signed in")).filter((a) => fIncludes(a, "user", ctx.employee));
+      return rowTable([{ key: "ms", label: "Time", mono: true, render: (r) => fmtAuditTime(r) }, { key: "user", label: "User" }], rows, ["user"], { key: "ms", dir: "desc" }); } },
+  { id: "deleted-transactions", label: "Deleted Transactions", filters: ["dateRange", "employee"], run: (ctx) => {
+      const rows = DATA.audit.filter((a) => /delet|void/i.test(a.action || "")).filter((a) => fIncludes(a, "user", ctx.employee));
+      return rowTable([{ key: "ms", label: "Time", mono: true, render: (r) => fmtAuditTime(r) }, { key: "user", label: "User" }, { key: "action", label: "Action" }, { key: "severity", label: "Severity", render: (r) => pill(r.severity) }], rows, ["user", "action"], { key: "ms", dir: "desc" }); } },
+  { id: "price-changes", label: "Price Changes", filters: ["dateRange", "employee"], run: (ctx) => {
+      const rows = DATA.audit.filter((a) => /edited service/i.test(a.action || "")).filter((a) => fIncludes(a, "user", ctx.employee));
+      return rowTable([{ key: "ms", label: "Time", mono: true, render: (r) => fmtAuditTime(r) }, { key: "user", label: "User" }, { key: "action", label: "Action" }], rows, ["user", "action"], { key: "ms", dir: "desc" }); } },
+  { id: "stock-adjustments-audit", label: "Stock Adjustments Audit", filters: ["dateRange", "employee"], run: (ctx) => {
+      const rows = DATA.audit.filter((a) => /item/i.test(a.action || "")).filter((a) => fIncludes(a, "user", ctx.employee));
+      return rowTable([{ key: "ms", label: "Time", mono: true, render: (r) => fmtAuditTime(r) }, { key: "user", label: "User" }, { key: "action", label: "Action" }], rows, ["user", "action"], { key: "ms", dir: "desc" }); } },
+  { id: "refund-report", label: "Refund Report (voided receipts)", filters: ["dateRange", "employee"], run: (ctx) => {
+      const rows = DATA.audit.filter((a) => /voided/i.test(a.action || "")).filter((a) => fIncludes(a, "user", ctx.employee));
+      return rowTable([{ key: "ms", label: "Time", mono: true, render: (r) => fmtAuditTime(r) }, { key: "user", label: "User" }, { key: "action", label: "Action" }], rows, ["user", "action"], { key: "ms", dir: "desc" }); } },
+  { id: "manual-discount-audit", label: "Manual Discount Audit", filters: ["dateRange", "branch", "employee"], run: (ctx) => {
+      const rows = scopeSales(ctx).filter((s) => s.discount > 0);
+      return rowTable([{ key: "date", label: "Date", mono: true }, { key: "customer", label: "Customer" }, { key: "cashier", label: "Cashier" }, { key: "discount", label: "Discount", mono: true, align: "right", render: (r) => money(r.discount) }], rows, ["customer", "cashier"], { key: "date", dir: "desc" }); } },
+]},
+
+{ key: "kpi", label: "Dashboard KPIs", reports: [
+  { id: "kpi-summary", label: "KPI Summary", filters: ["dateRange", "branch"], run: (ctx) => {
+      const range = ctx.range || computeRangePreset("Today");
+      const sales = scopeSales({ ...ctx, range }); const appts = scopeAppointments({ ...ctx, range });
+      const activeBarbers = DATA.barbers.filter((b) => b.status === "Active").length;
+      const revByBarber = groupRows(sales, (s) => s.barber); let topBarber = "—", topRev = 0;
+      revByBarber.forEach((gr, name) => { const rev = gr.reduce((a, r) => a + (r.amount || 0), 0); if (rev > topRev) { topRev = rev; topBarber = name; } });
+      const monthSales = scopeSales({ ...ctx, range: computeRangePreset("This Month") });
+      const monthExpenses = scopeExpenses({ ...ctx, range: computeRangePreset("This Month") });
+      const ratingRows = sales.filter((s) => s.rating); const avgRating = ratingRows.length ? (ratingRows.reduce((a, r) => a + r.rating, 0) / ratingRows.length).toFixed(1) : "—";
+      const completed = appts.filter((a) => a.status === "Completed").length;
+      const data = [
+        { name: "Today's Revenue", value: money(sales.reduce((a, s) => a + (s.amount || 0), 0)) },
+        { name: "Today's Customers", value: new Set(sales.map((s) => s.customer)).size },
+        { name: "Today's Appointments", value: appts.length },
+        { name: "Active Barbers", value: activeBarbers },
+        { name: "Top Barber", value: topBarber },
+        { name: "Low Stock Alerts", value: DATA.inventory.filter((i) => computeInvStatus(i) !== "OK").length },
+        { name: "Monthly Profit (est.)", value: money(monthSales.reduce((a, s) => a + (s.amount || 0), 0) - monthExpenses.reduce((a, e) => a + (e.amount || 0), 0)) },
+        { name: "Monthly Expenses", value: money(monthExpenses.reduce((a, e) => a + (e.amount || 0), 0)) },
+        { name: "Customer Satisfaction Rating", value: avgRating },
+        { name: "Appointment Completion Rate", value: appts.length ? Math.round((completed / appts.length) * 100) + "%" : "—" },
+      ];
+      return rowTable([{ key: "name", label: "KPI" }, { key: "value", label: "Value", align: "right" }], data, [], { key: "name", dir: "asc" }); } },
+]},
+
+];
+
+function scopeAttendanceReport(ctx) {
+  const rows = scopeAttendance(ctx);
+  return rowTable([{ key: "date", label: "Date", mono: true }, { key: "barber", label: "Barber" }, { key: "status", label: "Status", render: (r) => pill(r.status, { Present: "good", Absent: "bad", Late: "warn" }) }], rows, ["barber"], { key: "date", dir: "desc" });
+}
+
+/* ---------- export helpers ---------- */
+function cellPlainText(col, r) {
+  if (col.csv) return col.csv(r);
+  const raw = col.render ? col.render(r) : (r[col.key] ?? "");
+  return String(raw).replace(/<[^>]+>/g, "").trim();
+}
+function downloadBlob(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+function csvEsc(v) { v = String(v ?? ""); return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; }
+function exportCSV(columns, rows, filename) {
+  const header = columns.map((c) => csvEsc(c.label)).join(",");
+  const lines = rows.map((r) => columns.map((c) => csvEsc(cellPlainText(c, r))).join(","));
+  downloadBlob([header, ...lines].join("\r\n"), filename + ".csv", "text/csv;charset=utf-8;");
+  toast("CSV exported.", "good");
+}
+function htmlEsc(v) { return String(v ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
+function exportExcel(columns, rows, filename) {
+  const header = columns.map((c) => `<th>${htmlEsc(c.label)}</th>`).join("");
+  const body = rows.map((r) => `<tr>${columns.map((c) => `<td>${htmlEsc(cellPlainText(c, r))}</td>`).join("")}</tr>`).join("");
+  const html = `<html><head><meta charset="UTF-8"></head><body><table border="1">${"<tr>" + header + "</tr>"}${body}</table></body></html>`;
+  downloadBlob(html, filename + ".xls", "application/vnd.ms-excel");
+  toast("Excel file exported.", "good");
+}
+function exportPDF(title, columns, rows) {
+  const header = columns.map((c) => `<th>${htmlEsc(c.label)}</th>`).join("");
+  const body = rows.map((r) => `<tr>${columns.map((c) => `<td>${htmlEsc(cellPlainText(c, r))}</td>`).join("")}</tr>`).join("");
+  const container = document.createElement("div");
+  container.id = "print-report-root";
+  container.innerHTML = `<h2>${htmlEsc(SHOP_SETTINGS.name || "Barbershop")} — ${htmlEsc(title)}</h2>
+    <div style="font-size:11px;color:#555;margin-bottom:10px;">Generated ${new Date().toLocaleString("en-KE")}</div>
+    <table>${"<tr>" + header + "</tr>"}${body}</table>`;
+  document.body.appendChild(container);
+  document.body.classList.add("printing-report");
+  window.print();
+  setTimeout(() => { document.body.classList.remove("printing-report"); container.remove(); }, 300);
+}
+
+/* ---------- filter bar ---------- */
+const FILTER_DEFS = {
+  dateRange: { label: "Date range" },
+  branch: { label: "Branch", options: () => BRANCHES },
+  barber: { label: "Barber", options: optBarbers },
+  customer: { label: "Customer", options: optCustomers },
+  service: { label: "Service", options: optServices },
+  product: { label: "Product", options: optProducts },
+  supplier: { label: "Supplier", options: optSuppliers },
+  paymentMethod: { label: "Payment method", options: () => optPaymentMethods },
+  employee: { label: "Employee", options: optEmployees },
+  status: { label: "Status", options: () => optApptStatus },
+};
+function renderFilterBar(container, report, ctx, onChange) {
+  const keys = report.filters || [];
+  container.innerHTML = keys.map((k) => {
+    if (k === "dateRange") {
+      return `<select class="filter-select" data-fk="dateRange">
+          ${DATE_RANGE_PRESETS.map((p) => `<option value="${p}" ${ctx.__preset === p ? "selected" : ""}>${p}</option>`).join("")}
+        </select>
+        <input type="date" class="filter-select rf-custom-start ${ctx.__preset === "Custom" ? "" : "hidden"}" value="${ctx.__customStart || ""}" />
+        <input type="date" class="filter-select rf-custom-end ${ctx.__preset === "Custom" ? "" : "hidden"}" value="${ctx.__customEnd || ""}" />`;
+    }
+    const def = FILTER_DEFS[k];
+    const opts = k === "status" ? (report.statusOptions || optApptStatus) : def.options();
+    return `<select class="filter-select" data-fk="${k}">
+        <option value="All">${htmlEsc(def.label)}: All</option>
+        ${opts.map((o) => `<option value="${htmlEsc(o)}" ${ctx[k] === o ? "selected" : ""}>${htmlEsc(o)}</option>`).join("")}
+      </select>`;
+  }).join("");
+  container.querySelectorAll("select[data-fk], input.rf-custom-start, input.rf-custom-end").forEach((el) => {
+    el.addEventListener("change", () => {
+      if (el.dataset.fk === "dateRange") {
+        ctx.__preset = el.value;
+        container.querySelectorAll(".rf-custom-start, .rf-custom-end").forEach((d) => d.classList.toggle("hidden", el.value !== "Custom"));
+        ctx.range = computeRangePreset(el.value, ctx.__customStart, ctx.__customEnd);
+      } else if (el.classList.contains("rf-custom-start")) { ctx.__customStart = el.value; if (ctx.__preset === "Custom") ctx.range = computeRangePreset("Custom", ctx.__customStart, ctx.__customEnd); }
+      else if (el.classList.contains("rf-custom-end")) { ctx.__customEnd = el.value; if (ctx.__preset === "Custom") ctx.range = computeRangePreset("Custom", ctx.__customStart, ctx.__customEnd); }
+      else { ctx[el.dataset.fk] = el.value; }
+      onChange();
+    });
+  });
+}
+
+/* ---------- main Reports page ---------- */
+function renderReports(root) {
+  let categoryKey = REPORT_CATEGORIES[0].key;
+  let reportId = REPORT_CATEGORIES[0].reports[0].id;
+  let ctx = { __preset: "All Time", range: null };
+
+  function currentCategory() { return REPORT_CATEGORIES.find((c) => c.key === categoryKey); }
+  function currentReport() { return currentCategory().reports.find((r) => r.id === reportId); }
+
+  function draw() {
+    const cat = currentCategory(), rep = currentReport();
+    root.innerHTML = `
+      ${sectionHeader("Business intelligence · " + (DATA.sales.length ? DATA.sales.length + " sales on record" : "no data yet"), "Reports")}
+      <div class="card" style="padding:14px 16px;margin-bottom:14px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+          <select class="filter-select" id="rep-category" style="font-weight:600;">
+            ${REPORT_CATEGORIES.map((c) => `<option value="${c.key}" ${c.key === categoryKey ? "selected" : ""}>${htmlEsc(c.label)}</option>`).join("")}
+          </select>
+          <select class="filter-select" id="rep-report" style="min-width:260px;">
+            ${cat.reports.map((r) => `<option value="${r.id}" ${r.id === reportId ? "selected" : ""}>${htmlEsc(r.label)}</option>`).join("")}
+          </select>
+        </div>
+        <div id="rep-filterbar" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      </div>
+      <div id="rep-table"></div>`;
+
+    document.getElementById("rep-category").addEventListener("change", (e) => {
+      categoryKey = e.target.value; reportId = currentCategory().reports[0].id; ctx = { __preset: "All Time", range: null }; draw();
+    });
+    document.getElementById("rep-report").addEventListener("change", (e) => {
+      reportId = e.target.value; ctx = { __preset: "All Time", range: null }; draw();
+    });
+
+    renderFilterBar(document.getElementById("rep-filterbar"), rep, ctx, drawTable);
+    drawTable();
+
+    function drawTable() {
+      let result;
+      try { result = rep.run(ctx); }
+      catch (err) { result = { columns: [{ key: "name", label: "Error" }], rows: [], searchKeys: [], defaultSort: { key: "name", dir: "asc" } }; console.error(err); }
+      const tableWrap = document.getElementById("rep-table");
+      tableWrap.innerHTML = `
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;">
+          <button class="btn btn-sm btn-ghost" id="exp-csv">Export CSV</button>
+          <button class="btn btn-sm btn-ghost" id="exp-xls">Export Excel</button>
+          <button class="btn btn-sm btn-ghost" id="exp-pdf">Export PDF</button>
+        </div>
+        <div id="rep-table-inner"></div>`;
+      mountDataTable(document.getElementById("rep-table-inner"), {
+        columns: result.columns, rows: result.rows, searchKeys: result.searchKeys || [], filters: [], defaultSort: result.defaultSort,
+      });
+      document.getElementById("exp-csv").onclick = () => exportCSV(result.columns, result.rows, rep.id);
+      document.getElementById("exp-xls").onclick = () => exportExcel(result.columns, result.rows, rep.id);
+      document.getElementById("exp-pdf").onclick = () => exportPDF(rep.label, result.columns, result.rows);
+    }
+  }
   draw();
 }
 
@@ -1325,6 +2161,352 @@ function openAccountModal() {
 }
 
 /* ============================================================
+   SETTINGS PAGE (shop profile + sample data tools)
+   ============================================================ */
+function fileToResizedDataUrl(file, maxSize) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Couldn't read that file."));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("That doesn't look like a valid image."));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxSize || height > maxSize) {
+          const scale = maxSize / Math.max(width, height);
+          width = Math.round(width * scale); height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width; canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderSettings(root) {
+  root.innerHTML = `
+    ${sectionHeader("Shop profile & test data", "Settings")}
+    <div class="card" style="padding:20px;margin-bottom:18px;max-width:560px;">
+      <div class="chart-title" style="margin-bottom:14px;">Shop profile</div>
+      <div class="settings-row" style="margin-bottom:16px;">
+        <img class="logo-preview" id="logo-preview" src="${SHOP_SETTINGS.logo || ""}" style="${SHOP_SETTINGS.logo ? "" : "display:none;"}" />
+        <div class="stripe-mark logo-preview" id="logo-placeholder" style="${SHOP_SETTINGS.logo ? "display:none;" : ""}"></div>
+        <div>
+          <input type="file" accept="image/*" id="f-logo" style="font-size:12px;" />
+          <div style="font-size:11.5px;color:var(--text-dim);margin-top:4px;">PNG or JPG. Resized automatically.</div>
+        </div>
+      </div>
+      <div class="field"><label>Shop name</label><input id="f-shop-name" value="${escapeHtml(SHOP_SETTINGS.name)}" /></div>
+      <div class="field"><label>Location</label><input id="f-shop-location" value="${escapeHtml(SHOP_SETTINGS.location)}" placeholder="e.g. Moi Avenue, Nairobi" /></div>
+      <div class="field"><label>Phone number</label><input id="f-shop-phone" value="${escapeHtml(SHOP_SETTINGS.phone)}" placeholder="+254 7XX XXX XXX" /></div>
+      <div id="settings-error"></div>
+      <button class="btn btn-primary" id="save-settings">Save shop profile</button>
+    </div>
+
+    <div class="card danger-zone" style="max-width:560px;">
+      <div class="chart-title" style="margin-bottom:6px;">Sample data (for testing)</div>
+      <p style="font-size:12.5px;color:var(--text-dim);line-height:1.5;margin:0 0 14px;">
+        Seed realistic barbers, services, customers, appointments, sales, inventory, purchases, expenses and more so you
+        can try out every report and screen. This writes directly to your live database — use it on a test shop, not a
+        shop with real customer data you care about.
+      </p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="reload-sample">Reload sample data</button>
+        <button class="btn btn-danger" id="clear-sample">Clear sample data</button>
+      </div>
+      <div id="sample-status" style="font-size:12px;color:var(--text-dim);margin-top:10px;"></div>
+    </div>`;
+
+  let pendingLogo = SHOP_SETTINGS.logo || "";
+  document.getElementById("f-logo").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      pendingLogo = await fileToResizedDataUrl(file, 200);
+      document.getElementById("logo-preview").src = pendingLogo;
+      document.getElementById("logo-preview").style.display = "";
+      document.getElementById("logo-placeholder").style.display = "none";
+    } catch (err) { toast(err.message || "Couldn't process that image.", "bad"); }
+  });
+
+  document.getElementById("save-settings").addEventListener("click", async () => {
+    const btn = document.getElementById("save-settings");
+    const errEl = document.getElementById("settings-error");
+    errEl.innerHTML = "";
+    const name = document.getElementById("f-shop-name").value.trim();
+    if (!name) { errEl.innerHTML = `<div class="auth-error">Shop name can't be empty.</div>`; return; }
+    btn.disabled = true; btn.textContent = "Saving...";
+    try {
+      await setDoc(doc(db, "settings", "shop"), {
+        name, location: document.getElementById("f-shop-location").value.trim(),
+        phone: document.getElementById("f-shop-phone").value.trim(), logo: pendingLogo,
+      });
+      await logAudit("Updated shop settings", "Medium");
+      toast("Shop profile saved.", "good");
+    } catch (err) {
+      errEl.innerHTML = `<div class="auth-error">${escapeHtml(err.message || "Couldn't save — check your connection.")}</div>`;
+    } finally { btn.disabled = false; btn.textContent = "Save shop profile"; }
+  });
+
+  document.getElementById("reload-sample").addEventListener("click", async () => {
+    if (!confirm("This will replace all barbers, services, customers, sales, appointments, inventory and related records with fresh sample data. Continue?")) return;
+    await runSampleDataTask("reload-sample", "clear-sample", async () => { await clearAllBusinessData(); await seedSampleData(); }, "Sample data reloaded.");
+  });
+  document.getElementById("clear-sample").addEventListener("click", async () => {
+    if (!confirm("This will permanently delete ALL business data (barbers, services, customers, sales, appointments, inventory, etc). Continue?")) return;
+    await runSampleDataTask("clear-sample", "reload-sample", async () => { await clearAllBusinessData(); }, "All business data cleared.");
+  });
+
+  async function runSampleDataTask(activeId, otherId, task, doneMsg) {
+    const btn = document.getElementById(activeId), otherBtn = document.getElementById(otherId);
+    const statusEl = document.getElementById("sample-status");
+    btn.disabled = true; otherBtn.disabled = true;
+    const original = btn.textContent; btn.textContent = "Working...";
+    statusEl.textContent = "This can take a little while for larger datasets — please don't close this page.";
+    try {
+      await task();
+      await logAudit(doneMsg, "High");
+      toast(doneMsg, "good");
+      statusEl.textContent = doneMsg;
+    } catch (err) {
+      statusEl.textContent = "";
+      toast("Something went wrong: " + (err.message || "unknown error"), "bad");
+    } finally { btn.disabled = false; otherBtn.disabled = false; btn.textContent = original; }
+  }
+}
+
+/* ============================================================
+   SAMPLE / TEST DATA — seed + clear
+   ============================================================ */
+async function batchInsert(collectionName, records) {
+  for (let i = 0; i < records.length; i += 400) {
+    const batch = writeBatch(db);
+    records.slice(i, i + 400).forEach((rec) => { const ref = doc(collection(db, collectionName)); batch.set(ref, rec); });
+    await batch.commit();
+  }
+}
+async function clearAllBusinessData() {
+  const names = ["barbers", "services", "customers", "inventory", "suppliers", "expenses", "appointments", "sales", "purchases", "stockMovements", "attendance", "promotions", "deposits"];
+  for (const name of names) {
+    const snap = await getDocs(collection(db, name));
+    const docs = snap.docs;
+    for (let i = 0; i < docs.length; i += 400) {
+      const batch = writeBatch(db);
+      docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    }
+  }
+}
+
+function rInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function rPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function rBool(prob) { return Math.random() < prob; }
+function daysAgoStr(n) { const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); }
+function daysFromNowStr(n) { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+function rTime() { return `${String(rInt(8, 19)).padStart(2, "0")}:${rPick(["00", "15", "30", "45"])}`; }
+
+async function seedSampleData() {
+  const branches = BRANCHES;
+
+  const barberSeed = [
+    { name: "Brian Otieno", specialty: "Fades & Designs", branch: branches[0] },
+    { name: "Kevin Mwangi", specialty: "Classic Cuts", branch: branches[0] },
+    { name: "Dennis Kiptoo", specialty: "Beard Sculpting", branch: branches[0] },
+    { name: "Samuel Njoroge", specialty: "Kids & Family", branch: branches[1] },
+    { name: "Victor Omondi", specialty: "Premium Grooming", branch: branches[1] },
+  ];
+  const barbers = barberSeed.map((b, i) => ({
+    ...b, phone: `+2547${rInt(10000000, 99999999)}`,
+    status: i === 4 ? "On Leave" : "Active",
+    commissionRate: rInt(25, 35), baseSalary: rInt(14000, 22000), deductions: rInt(500, 1800),
+  }));
+  await batchInsert("barbers", barbers);
+
+  const services = [
+    { name: "Classic Haircut", category: "Haircut", price: 300, duration: 30, commissionRate: 30 },
+    { name: "Skin Fade", category: "Haircut", price: 400, duration: 40, commissionRate: 30 },
+    { name: "Kids Haircut", category: "Haircut", price: 250, duration: 25, commissionRate: 25 },
+    { name: "Classic Shave", category: "Shave", price: 200, duration: 20, commissionRate: 30 },
+    { name: "Hot Towel Shave", category: "Shave", price: 350, duration: 30, commissionRate: 30 },
+    { name: "Beard Trim", category: "Beard Grooming", price: 200, duration: 15, commissionRate: 30 },
+    { name: "Beard Sculpt", category: "Beard Grooming", price: 350, duration: 25, commissionRate: 35 },
+    { name: "Premium Grooming Package", category: "Premium", price: 1500, duration: 90, commissionRate: 35 },
+    { name: "VIP Executive Cut", category: "Premium", price: 1200, duration: 60, commissionRate: 35 },
+    { name: "Hair Coloring", category: "Coloring", price: 900, duration: 60, commissionRate: 30 },
+    { name: "Scalp Treatment", category: "Treatment", price: 500, duration: 30, commissionRate: 25 },
+    { name: "Line Up", category: "Add-on", price: 100, duration: 10, commissionRate: 25 },
+    { name: "Hair Wash", category: "Add-on", price: 100, duration: 10, commissionRate: 20 },
+    { name: "Dreadlock Retwist", category: "Premium", price: 1000, duration: 75, commissionRate: 30 },
+  ].map((s) => ({ ...s, status: "Active" }));
+  await batchInsert("services", services);
+
+  const firstNames = ["James","Mary","John","Grace","Peter","Faith","David","Ann","Michael","Joy","Daniel","Esther","Joseph","Lucy","Paul","Winnie","Simon","Mercy","Stephen","Ruth","Collins","Diana","Felix","Sharon","George","Irene","Brian","Caroline","Eric","Beatrice"];
+  const lastNames = ["Mwangi","Otieno","Kariuki","Wanjiru","Odhiambo","Kamau","Achieng","Njoroge","Wafula","Cheruiyot","Wambui","Kiptoo","Muthoni","Onyango","Njeri"];
+  const customers = Array.from({ length: 42 }).map((_, i) => {
+    const membership = rBool(0.5) ? "New" : (rBool(0.7) ? "Standard" : "VIP");
+    const hasExpiry = membership !== "New";
+    return {
+      name: `${rPick(firstNames)} ${rPick(lastNames)}`,
+      phone: `+2547${rInt(10000000, 99999999)}`,
+      preferredBarber: rPick(barbers).name,
+      membership, branch: rPick(branches),
+      loyaltyPoints: rInt(0, 600),
+      joinDate: daysAgoStr(rInt(5, 380)),
+      birthday: `${String(rInt(1, 12)).padStart(2, "0")}-${String(rInt(1, 28)).padStart(2, "0")}`,
+      membershipExpiry: hasExpiry ? (rBool(0.8) ? daysFromNowStr(rInt(5, 300)) : daysAgoStr(rInt(1, 60))) : "",
+    };
+  });
+  await batchInsert("customers", customers);
+
+  const suppliers = [
+    { name: "Nairobi Grooming Supplies", contact: "+254711223344", products: "Clippers, shears, capes" },
+    { name: "Kenblest Hair Products", contact: "+254722334455", products: "Pomade, gel, oils" },
+    { name: "Continental Barber Imports", contact: "+254733445566", products: "Chairs, mirrors, sterilizers" },
+    { name: "Afro Shave Co.", contact: "+254744556677", products: "Razors, shaving cream" },
+    { name: "CleanCut Chemicals", contact: "+254755667788", products: "Disinfectant, towels" },
+    { name: "Prime Retail Distributors", contact: "+254766778899", products: "Retail pomade & combs" },
+  ].map((s) => ({ ...s, outstanding: rBool(0.4) ? rInt(2000, 25000) : 0, lastPayment: daysAgoStr(rInt(1, 60)) }));
+  await batchInsert("suppliers", suppliers);
+
+  const invCategories = ["Hair Products", "Shaving Supplies", "Tools", "Retail"];
+  const invNames = ["Pomade (Matte)","Pomade (Shine)","Hair Gel","Beard Oil","Shaving Cream","Aftershave Lotion","Disposable Razors","Clipper Blades","Sterilizing Fluid","Barber Capes","Neck Strips","Talcum Powder","Hair Spray","Hot Towels (pack)","Combs","Scissors (pair)","Hair Color Kit","Disinfectant Spray"];
+  const inventory = invNames.map((name) => {
+    const reorder = rInt(5, 15);
+    const stock = rBool(0.15) ? 0 : (rBool(0.2) ? rInt(1, reorder) : rInt(reorder, reorder * 4));
+    const hasExpiry = rBool(0.4);
+    return {
+      name, category: rPick(invCategories), stock, reorder,
+      unitCost: rInt(150, 1200), supplier: rPick(suppliers).name, branch: rPick(branches),
+      expiryDate: hasExpiry ? (rBool(0.25) ? daysAgoStr(rInt(1, 30)) : daysFromNowStr(rInt(10, 200))) : "",
+    };
+  });
+  await batchInsert("inventory", inventory);
+
+  // Purchases + matching stock-movement "Received" records
+  const purchases = []; const stockMovements = [];
+  for (let i = 0; i < 45; i++) {
+    const supplier = rPick(suppliers).name;
+    const item = rPick(inventory).name;
+    const qty = rInt(5, 40); const unitCost = rInt(150, 1200); const date = daysAgoStr(rInt(0, 90));
+    const status = rBool(0.9) ? "Received" : "Returned";
+    purchases.push({ date, supplier, item, qty, unitCost, total: qty * unitCost, branch: rPick(branches), status });
+    stockMovements.push({ date, item, type: status === "Received" ? "Received" : "Adjusted", qty: status === "Received" ? qty : -qty, branch: rPick(branches), note: status === "Received" ? `Purchase from ${supplier}` : "Return to supplier" });
+  }
+  // Retail "Sold" / "Damaged" / "Expired" movements
+  for (let i = 0; i < 90; i++) {
+    stockMovements.push({ date: daysAgoStr(rInt(0, 90)), item: rPick(inventory).name, type: "Sold", qty: rInt(1, 4), branch: rPick(branches), note: "Retail sale at counter" });
+  }
+  for (let i = 0; i < 10; i++) {
+    stockMovements.push({ date: daysAgoStr(rInt(0, 90)), item: rPick(inventory).name, type: "Damaged", qty: rInt(1, 3), branch: rPick(branches), note: "Damaged in storage" });
+  }
+  for (let i = 0; i < 8; i++) {
+    stockMovements.push({ date: daysAgoStr(rInt(0, 60)), item: rPick(inventory).name, type: "Expired", qty: rInt(1, 5), branch: rPick(branches), note: "Past expiry, disposed" });
+  }
+  await batchInsert("purchases", purchases);
+  await batchInsert("stockMovements", stockMovements);
+
+  const expCategories = ["Rent", "Utilities", "Salaries", "Marketing", "Equipment Maintenance", "Supplies", "Other"];
+  const expenses = [];
+  for (let m = 0; m < 3; m++) {
+    expenses.push({ date: daysAgoStr(m * 30 + rInt(0, 3)), category: "Rent", desc: "Monthly shop rent", amount: rInt(30000, 45000), approvedBy: "Owner", branch: rPick(branches) });
+    expenses.push({ date: daysAgoStr(m * 30 + rInt(0, 3)), category: "Salaries", desc: "Support staff wages", amount: rInt(15000, 25000), approvedBy: "Owner", branch: rPick(branches) });
+  }
+  for (let i = 0; i < 40; i++) {
+    const category = rPick(expCategories);
+    expenses.push({
+      date: daysAgoStr(rInt(0, 90)), category,
+      desc: category === "Utilities" ? rPick(["Electricity bill", "Water bill", "Wi-Fi bill"])
+        : category === "Marketing" ? rPick(["Facebook ads", "Flyers printing", "Instagram promotion"])
+        : category === "Equipment Maintenance" ? rPick(["Clipper servicing", "Chair repair", "Sterilizer maintenance"])
+        : category === "Supplies" ? rPick(["Cleaning supplies", "Office supplies"]) : rPick(["Miscellaneous", "Staff refreshments"]),
+      amount: rInt(500, 6000), approvedBy: rPick(["Owner", "Manager"]), branch: rPick(branches),
+    });
+  }
+  await batchInsert("expenses", expenses);
+
+  // Appointments (past + upcoming) + Sales (linked loosely)
+  const apptStatuses = ["Completed", "Completed", "Completed", "Completed", "Cancelled", "No-show"];
+  const sources = ["Walk-in", "Phone", "Online", "Referral"];
+  const methods = ["Cash", "M-Pesa", "Card", "Mixed"];
+  const promoNames = ["NEWYEAR20", "STUDENT10", "REFER200", "BEARD15", "VIPBONUS"];
+  const appointments = []; const sales = [];
+  for (let i = 0; i < 150; i++) {
+    const dayOffset = rInt(-45, 10);
+    const date = dayOffset <= 0 ? daysAgoStr(-dayOffset) : daysFromNowStr(dayOffset);
+    const isFuture = dayOffset > 0;
+    const barber = rPick(barbers); const customer = rPick(customers); const service = rPick(services);
+    const type = rBool(0.5) ? "Walk-in" : "Booking";
+    const status = isFuture ? rPick(["Confirmed", "In Progress"]) : rPick(apptStatuses);
+    const appt = {
+      date, time: rTime(), customer: customer.name, barber: barber.name, service: service.name,
+      type, status, branch: barber.branch, source: type === "Walk-in" ? "Walk-in" : rPick(sources),
+    };
+    if (!isFuture && type === "Walk-in") appt.waitMinutes = rInt(2, 28);
+    appointments.push(appt);
+
+    if (!isFuture && status === "Completed") {
+      const extraServices = rBool(0.3) ? [rPick(services)] : [];
+      const items = [service, ...extraServices].map((s) => ({ name: s.name, price: s.price }));
+      const amount = items.reduce((a, it) => a + it.price, 0);
+      const discount = rBool(0.15) ? Math.round(amount * rPick([0.1, 0.15, 0.2])) : 0;
+      const sale = {
+        date, time: appt.time, customer: customer.name, barber: barber.name, method: rPick(methods),
+        items, itemsLabel: items.map((it) => it.name).join(", "),
+        amount: amount - discount, cashier: rPick(["Grace Njeri", "Ann Wanjiru", "Owner"]),
+        ms: new Date(date + "T" + appt.time).getTime(), voided: rBool(0.03),
+        branch: barber.branch, discount, tip: rBool(0.4) ? rInt(20, 200) : 0,
+        rating: rBool(0.7) ? rInt(3, 5) : 0,
+        pointsRedeemed: rBool(0.08) ? rInt(50, 200) : 0,
+        promo: discount > 0 && rBool(0.5) ? rPick(promoNames) : "",
+      };
+      if (rBool(0.3)) {
+        const product = rPick(inventory); const qty = rInt(1, 2); const price = Math.round(product.unitCost * 1.6);
+        sale.productItems = [{ name: product.name, price, qty }];
+        sale.amount += price * qty; sale.itemsLabel += ` + ${product.name}`;
+      }
+      sales.push(sale);
+    }
+  }
+  await batchInsert("appointments", appointments);
+  await batchInsert("sales", sales);
+
+  // Attendance — last ~50 weekdays per barber
+  const attendance = [];
+  for (const b of barbers) {
+    let d = 0, recorded = 0;
+    while (recorded < 45) {
+      const day = new Date(); day.setDate(day.getDate() - d);
+      d++;
+      if (day.getDay() === 0) continue; // skip Sundays
+      recorded++;
+      attendance.push({ date: day.toISOString().slice(0, 10), barber: b.name, status: rBool(0.9) ? "Present" : rBool(0.5) ? "Late" : "Absent", branch: b.branch });
+    }
+  }
+  await batchInsert("attendance", attendance);
+
+  // Promotions
+  const promotions = [
+    { name: "NEWYEAR20", type: "Percentage", value: 20, startDate: daysAgoStr(60), endDate: daysAgoStr(30), usageCount: rInt(10, 40), branch: "All" },
+    { name: "STUDENT10", type: "Percentage", value: 10, startDate: daysAgoStr(90), endDate: daysFromNowStr(90), usageCount: rInt(5, 25), branch: "All" },
+    { name: "REFER200", type: "Fixed", value: 200, startDate: daysAgoStr(45), endDate: daysFromNowStr(45), usageCount: rInt(3, 15), branch: "All" },
+    { name: "BEARD15", type: "Percentage", value: 15, startDate: daysAgoStr(20), endDate: daysFromNowStr(20), usageCount: rInt(5, 20), branch: "All" },
+    { name: "VIPBONUS", type: "Fixed", value: 500, startDate: daysAgoStr(10), endDate: daysFromNowStr(80), usageCount: rInt(1, 8), branch: "All" },
+  ];
+  await batchInsert("promotions", promotions);
+
+  // Bank/M-Pesa deposits
+  const deposits = [];
+  for (let i = 0; i < 35; i++) {
+    deposits.push({ date: daysAgoStr(rInt(0, 90)), amount: rInt(2000, 20000), branch: rPick(branches), method: rBool(0.6) ? "Bank" : "Cash", reference: `DEP${rInt(100000, 999999)}` });
+  }
+  await batchInsert("deposits", deposits);
+}
+
+/* ============================================================
    NAVIGATION / SHELL
    ============================================================ */
 const NAV = [
@@ -1348,6 +2530,7 @@ const NAV = [
   ]},
   { group: "Admin", items: [
     { key: "staff", label: "Staff Management", icon: "staff", render: renderStaff, adminOnly: true },
+    { key: "settings", label: "Settings", icon: "settings", render: renderSettings, adminOnly: true },
   ]},
 ];
 const PAGE_LABEL = Object.fromEntries(NAV.flatMap((g) => g.items).map((i) => [i.key, i.label]));
@@ -1493,6 +2676,9 @@ async function renderAuthBody(message) {
   draw();
 }
 
+applyBranding();
+subscribeSettings();
+
 /* ============================================================
    AUTH STATE
    ============================================================ */
@@ -1505,6 +2691,10 @@ onAuthStateChanged(auth, async (user) => {
     currentProfile = snap.data();
     if (currentProfile.active === false) { await signOut(auth); showAuthScreen("This account has been deactivated. Contact your admin."); return; }
     showAppShell();
+    if (!sessionStorage.getItem("signedInLogged-" + user.uid)) {
+      sessionStorage.setItem("signedInLogged-" + user.uid, "1");
+      logAudit("Signed in", "Low");
+    }
   } catch (err) {
     showAuthScreen(friendlyAuthError(err));
   }
@@ -1551,6 +2741,36 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
   });
 }
+
+/* ============================================================
+   OFFLINE / ONLINE STATUS
+   The app never shows browser network errors: the service worker keeps the
+   shell loading, and Firestore's local persistence keeps data readable and
+   writable. All we do here is give a calm, honest signal of connection
+   state instead of letting a failed request surface as an error anywhere.
+   ============================================================ */
+let pendingWrites = 0;
+function updateNetStatus() {
+  const pill = document.getElementById("net-status");
+  const text = document.getElementById("net-status-text");
+  if (!pill) return;
+  if (!navigator.onLine) {
+    pill.classList.remove("hidden");
+    pill.className = "pill pill-warn";
+    pill.style.display = "flex";
+    text.textContent = "Offline — changes will sync later";
+  } else if (pendingWrites > 0) {
+    pill.classList.remove("hidden");
+    pill.className = "pill pill-info";
+    pill.style.display = "flex";
+    text.textContent = "Syncing...";
+  } else {
+    pill.classList.add("hidden");
+  }
+}
+window.addEventListener("online", () => { updateNetStatus(); toast("Back online — syncing any changes made offline.", "good"); });
+window.addEventListener("offline", () => { updateNetStatus(); toast("You're offline. You can keep working — changes will sync automatically.", "default"); });
+updateNetStatus();
 </script>
 </body>
 </html>

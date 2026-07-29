@@ -5,14 +5,14 @@
    is handled separately by Firestore's own offline persistence — this
    worker does not need to know anything about that.
 */
-const CACHE_VERSION = "fikirinis-shell-v2";
+const CACHE_VERSION = "fikirinis-shell-v3";
 const SHELL_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon-192.png",
-  "./icon-512.png",
-  "./apple-touch-icon.png",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/apple-touch-icon.png",
 ];
 
 self.addEventListener("install", (event) => {

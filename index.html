@@ -13,6 +13,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Fikirini's" />
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
@@ -21,6 +24,11 @@
     --text:#1B1D22; --text-dim:#6B6A63; --red:#B23A34; --red-deep:#8C2C28; --blue:#2E4763; --gold:#A9782F; --green:#3E6B4F; --white:#FFFFFF;
     --font-d:'Fraunces',serif; --font-b:'Inter',sans-serif; --font-m:'IBM Plex Mono',monospace;
   }
+  html.dark-mode{
+    --paper:#14161B; --paper-dim:#1B1E24; --card:#1E2128; --line:#2C2F38;
+    --text:#EDECE8; --text-dim:#9C9AA2;
+  }
+  html.dark-mode body{background:var(--paper);}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:var(--paper);color:var(--text);font-family:var(--font-b);}
   ::selection{background:var(--red);color:#fff;}
@@ -206,23 +214,58 @@
   }
   .menu-btn{display:none;background:transparent;border:none;color:var(--text);padding:6px;margin-right:4px;}
 
-  /* ---------- print-only report export (drives "Export PDF") ---------- */
-  #print-report-root{display:none;}
-  #print-report-root h2{font-family:var(--font-d);}
-  #print-report-root table{width:100%;border-collapse:collapse;}
-  #print-report-root th,#print-report-root td{border:1px solid #999;padding:6px 8px;font-size:11px;text-align:left;}
-  @media print{
-    body.printing-report > *:not(#print-report-root){display:none !important;}
-    body.printing-report #print-report-root{display:block !important;}
-  }
-
   /* ---------- settings page ---------- */
   .logo-preview{width:64px;height:64px;border-radius:12px;object-fit:cover;background:var(--paper-dim);border:1px solid var(--line);flex-shrink:0;}
   .settings-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
   .danger-zone{border:1px solid #E7C6C1;background:#FBF3F1;border-radius:10px;padding:16px;margin-top:8px;}
+  html.dark-mode .danger-zone{background:#2A1917;border-color:#4A2B27;}
+
+  /* ---------- powered-by footer ---------- */
+  .powered-by{font-size:10.5px;color:#75737C;text-align:center;letter-spacing:.3px;margin-top:10px;}
+  .powered-by b{color:#C9C7CF;font-weight:700;}
+  .powered-by-doc{font-size:10.5px;color:var(--text-dim);text-align:center;margin-top:18px;padding-top:12px;border-top:1px solid var(--line);}
+  .powered-by-doc b{color:var(--text);}
+
+  /* ---------- theme toggle ---------- */
+  .theme-toggle{display:flex;gap:8px;}
+  .theme-opt{flex:1;padding:14px;border-radius:9px;border:1px solid var(--line);background:var(--paper);color:var(--text);
+    display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12.5px;font-weight:600;}
+  .theme-opt.active{border-color:var(--red);background:var(--card);box-shadow:0 0 0 1.5px var(--red);}
+
+  /* ---------- branded document header (reports / receipts on-screen) ---------- */
+  .brand-doc-header{background:var(--ink);color:#fff;border-radius:10px;padding:18px 20px;margin-bottom:16px;position:relative;overflow:hidden;}
+  .brand-doc-stripe{position:absolute;top:0;left:0;right:0;height:5px;background:repeating-linear-gradient(90deg,var(--red) 0 14px,#fff 14px 20px,var(--blue) 20px 34px);}
+  .brand-doc-top{display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap;justify-content:space-between;}
+  .brand-doc-id{display:flex;align-items:center;gap:10px;}
+  .brand-doc-logo{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:repeating-linear-gradient(45deg,var(--red) 0 6px,#fff 6px 12px,var(--blue) 12px 18px);box-shadow:inset 0 0 0 2px rgba(0,0,0,.25);object-fit:cover;}
+  .brand-doc-shop{font-family:var(--font-d);font-size:15px;font-weight:700;line-height:1.1;}
+  .brand-doc-sub{font-size:10.5px;color:#9A98A0;letter-spacing:.4px;}
+  .brand-doc-title{font-family:var(--font-d);font-size:19px;font-weight:600;text-align:right;}
+  .brand-doc-meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid #2A2C34;}
+  .brand-doc-meta-item{font-size:11px;}
+  .brand-doc-meta-item span{display:block;color:#8B8992;text-transform:uppercase;letter-spacing:.4px;font-size:9.5px;margin-bottom:2px;}
+  .brand-doc-meta-item b{color:#fff;font-family:var(--font-m);font-weight:600;font-size:12px;}
+
+  /* ---------- receipt modal ---------- */
+  .receipt-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:0;overflow:hidden;}
+  .receipt-lines{padding:14px 18px;}
+  .receipt-line{display:flex;justify-content:space-between;font-size:12.5px;padding:6px 0;border-bottom:1px dashed var(--line);}
+  .receipt-line:last-child{border-bottom:none;}
+  .receipt-total-row{display:flex;justify-content:space-between;padding:12px 18px;background:var(--paper-dim);font-family:var(--font-m);font-weight:700;font-size:15px;}
+
+  /* ---------- module access grid (staff creation) ---------- */
+  .access-grid{border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-top:4px;}
+  .access-row{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:12.5px;border-bottom:1px solid var(--line);}
+  .access-row:last-child{border-bottom:none;}
+  .access-row:nth-child(even){background:var(--paper);}
+  .access-row .am-label{flex:1;font-weight:500;}
+  .access-row label{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-dim);white-space:nowrap;}
 </style>
 </head>
 <body>
+<script>
+  try { if (localStorage.getItem("theme") === "dark") document.documentElement.classList.add("dark-mode"); } catch (e) {}
+</script>
 
 <!-- ============================= AUTH SCREEN ============================= -->
 <div id="auth-screen">
@@ -257,6 +300,7 @@
         <button class="foot-btn" id="btn-account">Account</button>
         <button class="foot-btn" id="btn-signout">Sign out</button>
       </div>
+      <div class="powered-by">Powered by <b>Omlin</b></div>
     </div>
   </aside>
 
@@ -349,6 +393,67 @@ const ADMIN_ROLES = ["Owner", "Manager"];
 const ALL_ROLES = ["Owner", "Manager", "Barber", "Cashier", "Receptionist"];
 const isAdmin = (profile) => !!profile && ADMIN_ROLES.includes(profile.role);
 
+/* ============================================================
+   MODULE ACCESS (per-staff Read/Write grants)
+   Owners/Managers always have full access. Everyone else's access is
+   whatever was checked for them in Staff Management. Accounts created
+   before this feature existed have no moduleAccess field at all — for
+   those we fall back to the app's original behaviour (operational
+   modules open to everyone, admin-only modules hidden) so nobody already
+   using the app loses access silently.
+   ============================================================ */
+const MODULES = [
+  { key: "dashboard", label: "Dashboard" },
+  { key: "appointments", label: "Appointments" },
+  { key: "pos", label: "Point of Sale" },
+  { key: "customers", label: "Customers" },
+  { key: "barbers", label: "Barbers" },
+  { key: "services", label: "Services" },
+  { key: "inventory", label: "Inventory" },
+  { key: "suppliers", label: "Suppliers" },
+  { key: "expenses", label: "Expenses" },
+  { key: "payroll", label: "Payroll" },
+  { key: "branches", label: "Branches" },
+  { key: "reports", label: "Reports" },
+  { key: "audit", label: "Audit Log" },
+  { key: "staff", label: "Staff Management" },
+  { key: "settings", label: "Settings" },
+];
+const LEGACY_OPEN_MODULES = ["dashboard", "appointments", "pos", "customers", "barbers", "services", "inventory", "suppliers"];
+const DEFAULT_STAFF_ACCESS = Object.fromEntries(MODULES.map((m) => [m.key,
+  { read: LEGACY_OPEN_MODULES.includes(m.key), write: LEGACY_OPEN_MODULES.includes(m.key) }]));
+function hasModuleAccess(profile, key, mode) {
+  if (isAdmin(profile)) return true;
+  if (!profile) return false;
+  if (profile.moduleAccess) return !!(profile.moduleAccess[key] && profile.moduleAccess[key][mode]);
+  // legacy account, no moduleAccess saved yet
+  return mode === "read" ? LEGACY_OPEN_MODULES.includes(key) : LEGACY_OPEN_MODULES.includes(key);
+}
+const canRead = (key) => hasModuleAccess(currentProfile, key, "read");
+const canWrite = (key) => hasModuleAccess(currentProfile, key, "write");
+function accessCheckboxesHtml(existing) {
+  const acc = existing || DEFAULT_STAFF_ACCESS;
+  return `<div class="access-grid">
+    ${MODULES.map((m) => {
+      const a = acc[m.key] || { read: false, write: false };
+      return `<div class="access-row">
+        <div class="am-label">${escapeHtml(m.label)}</div>
+        <label><input type="checkbox" class="am-read" data-mod="${m.key}" ${a.read ? "checked" : ""} /> Read</label>
+        <label><input type="checkbox" class="am-write" data-mod="${m.key}" ${a.write ? "checked" : ""} /> Write</label>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+function readAccessCheckboxes(container) {
+  const out = {};
+  MODULES.forEach((m) => {
+    const read = container.querySelector(`.am-read[data-mod="${m.key}"]`)?.checked || false;
+    const write = container.querySelector(`.am-write[data-mod="${m.key}"]`)?.checked || false;
+    out[m.key] = { read: read || write, write };
+  });
+  return out;
+}
+
 const money = (n) => "KSh " + Math.round(n || 0).toLocaleString("en-KE");
 const escapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
 
@@ -404,6 +509,8 @@ const ICONS = {
   reports: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
   audit: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
   staff: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+  branches: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+  download: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
   search: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`,
   plus: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
   settings: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
@@ -419,10 +526,21 @@ const ICONS = {
    appointments, sales, audit — the same way 'users' already works.
    ============================================================ */
 const COLLECTIONS = ["barbers", "services", "customers", "inventory", "suppliers", "expenses", "appointments", "sales",
-  "purchases", "stockMovements", "attendance", "promotions", "deposits"];
+  "purchases", "stockMovements", "attendance", "promotions", "deposits", "branches", "salaryPayments", "barberPay"];
 const DATA = { barbers: [], services: [], customers: [], inventory: [], suppliers: [], expenses: [], appointments: [], sales: [],
-  purchases: [], stockMovements: [], attendance: [], promotions: [], deposits: [], audit: [] };
-const BRANCHES = ["Main Branch", "Westlands Branch"];
+  purchases: [], stockMovements: [], attendance: [], promotions: [], deposits: [], branches: [], salaryPayments: [], barberPay: [], audit: [] };
+// BRANCHES stays a stable array reference (mutated in place) so every existing
+// `options: BRANCHES` reference across the app reflects live Firestore data from
+// the new Branches module, falling back to two sensible defaults until any
+// branch documents exist.
+const DEFAULT_BRANCH_NAMES = ["Main Branch", "Westlands Branch"];
+const BRANCHES = [...DEFAULT_BRANCH_NAMES];
+function syncBranchNames() {
+  const names = DATA.branches.map((b) => b.name).filter(Boolean);
+  const next = names.length ? names : DEFAULT_BRANCH_NAMES;
+  BRANCHES.length = 0;
+  BRANCHES.push(...next);
+}
 let dataUnsubs = [];
 
 function subscribeAllData() {
@@ -430,6 +548,7 @@ function subscribeAllData() {
   COLLECTIONS.forEach((name) => {
     const unsub = onSnapshot(collection(db, name), (snap) => {
       DATA[name] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      if (name === "branches") syncBranchNames();
       softRerender();
     }, (err) => console.error(`[${name}]`, err));
     dataUnsubs.push(unsub);
@@ -599,8 +718,9 @@ function wireActionsDropdown(container, handlers) {
 // Generic Firestore-backed list page: renders a table with Add (top button)
 // and Edit / Delete (per-row dropdown), all wired straight to `collectionName`.
 function renderCrudPage(root, cfg) {
-  root.innerHTML = `${sectionHeader(cfg.eyebrow, cfg.title, addBtn(cfg.addLabel, "crud-add"))}${cfg.extraTop || ""}<div id="crud-table"></div>`;
-  document.getElementById("crud-add").onclick = () => openEntityModal({
+  const writable = !cfg.moduleKey || canWrite(cfg.moduleKey);
+  root.innerHTML = `${sectionHeader(cfg.eyebrow, cfg.title, writable ? addBtn(cfg.addLabel, "crud-add") : "")}${cfg.extraTop || ""}<div id="crud-table"></div>`;
+  if (writable) document.getElementById("crud-add").onclick = () => openEntityModal({
     title: `Add ${cfg.singular}`, fields: cfg.fields, data: {},
     onSave: async (values) => {
       await addDoc(collection(db, cfg.collectionName), values);
@@ -612,7 +732,7 @@ function renderCrudPage(root, cfg) {
     columns: cfg.columns,
     rows: () => DATA[cfg.collectionName],
     searchKeys: cfg.searchKeys, filters: cfg.filters || [], defaultSort: cfg.defaultSort,
-    rowActions: (r) => actionsDropdown(r.id, [{ label: "Edit", act: "edit" }, { label: "Delete", act: "delete", danger: true }]),
+    rowActions: writable ? (r) => actionsDropdown(r.id, [{ label: "Edit", act: "edit" }, { label: "Delete", act: "delete", danger: true }]) : undefined,
     onMount: (container) => wireActionsDropdown(container, {
       edit: (rowId) => {
         const row = DATA[cfg.collectionName].find((x) => x.id === rowId);
@@ -864,16 +984,19 @@ function renderAppointments(root) {
   });
 }
 
+const CUSTOMER_TYPES = ["Walk-in", "Appointment", "Regular", "Corporate", "VIP"];
+
 function renderPOS(root) {
   const activeServices = DATA.services.filter((s) => s.status !== "Inactive");
   const barberNames = DATA.barbers.map((b) => b.name);
+  const readOnly = !canWrite("pos");
   root.innerHTML = `
     ${sectionHeader("Point of sale", "Sales & checkout")}
     <div class="pos-grid">
       <div class="card pos-services">
         <span class="chart-title">New sale</span>
         <div class="service-grid" id="service-tiles">
-          ${activeServices.length ? activeServices.map((s) => `<button class="service-tile" data-id="${s.id}"><div class="n">${escapeHtml(s.name)}</div><div class="p">${money(s.price)}</div></button>`).join("")
+          ${activeServices.length ? activeServices.map((s) => `<button class="service-tile" data-id="${s.id}" ${readOnly ? "disabled" : ""}><div class="n">${escapeHtml(s.name)}</div><div class="p">${money(s.price)}</div></button>`).join("")
             : `<div style="grid-column:1/-1;font-size:12.5px;color:var(--text-dim);">No services yet — add some in the Services page.</div>`}
         </div>
       </div>
@@ -882,6 +1005,10 @@ function renderPOS(root) {
         <span class="chart-title" style="color:#fff;">Current ticket</span>
         <div class="field" style="margin-top:12px;"><label style="color:#9A9CA6;">Customer</label>
           <input id="pos-customer" placeholder="Walk-in" style="width:100%;padding:8px 10px;border-radius:7px;border:none;font-size:13px;box-sizing:border-box;" /></div>
+        <div class="field"><label style="color:#9A9CA6;">Customer type</label>
+          <select id="pos-customer-type" style="width:100%;padding:8px 10px;border-radius:7px;border:none;font-size:13px;">
+            ${CUSTOMER_TYPES.map((t) => `<option value="${t}">${t}</option>`).join("")}
+          </select></div>
         <div class="field"><label style="color:#9A9CA6;">Barber</label>
           <select id="pos-barber" style="width:100%;padding:8px 10px;border-radius:7px;border:none;font-size:13px;">
             ${barberNames.length ? barberNames.map((n) => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("") : `<option value="">—</option>`}
@@ -896,7 +1023,7 @@ function renderPOS(root) {
           </select></div>
         <div class="ticket-lines" id="ticket-lines"><div class="ticket-empty">Tap a service to add it to the ticket.</div></div>
         <div class="ticket-total"><span>Total</span><span id="ticket-total">KSh 0</span></div>
-        <button class="charge-btn" id="charge-btn">Charge KSh 0</button>
+        <button class="charge-btn" id="charge-btn" ${readOnly ? "disabled" : ""}>${readOnly ? "View only — no charge access" : "Charge KSh 0"}</button>
       </div>
     </div>
     <div style="font-size:13px;font-weight:600;margin-bottom:10px;">Recent transactions</div>
@@ -911,33 +1038,36 @@ function renderPOS(root) {
     linesEl.innerHTML = cart.length === 0 ? `<div class="ticket-empty">Tap a service to add it to the ticket.</div>`
       : cart.map((c, i) => `<div class="ticket-line"><span>${escapeHtml(c.name)}</span><span>${money(c.price)} <button data-i="${i}" class="pos-remove" style="background:none;border:none;color:#9A9CA6;">✕</button></span></div>`).join("");
     totalEl.textContent = money(total);
-    chargeBtn.textContent = `Charge ${money(total)}`;
+    if (!readOnly) chargeBtn.textContent = `Charge ${money(total)}`;
     linesEl.querySelectorAll(".pos-remove").forEach((b) => b.addEventListener("click", () => { cart.splice(+b.dataset.i, 1); renderCart(); }));
   }
   document.querySelectorAll(".service-tile").forEach((btn) => {
     btn.addEventListener("click", () => { const s = DATA.services.find((x) => x.id === btn.dataset.id); if (s) cart.push(s); renderCart(); });
   });
   chargeBtn.addEventListener("click", async () => {
-    if (cart.length === 0) return;
+    if (readOnly || cart.length === 0) return;
     const total = cart.reduce((a, c) => a + c.price, 0);
     const customer = document.getElementById("pos-customer").value.trim() || "Walk-in";
+    const customerType = document.getElementById("pos-customer-type").value;
     const barber = document.getElementById("pos-barber").value || "—";
     const method = document.getElementById("pos-method").value;
     const branch = document.getElementById("pos-branch").value;
     const now = new Date();
     chargeBtn.disabled = true; chargeBtn.textContent = "Charging...";
     try {
-      await addDoc(collection(db, "sales"), {
+      const saleData = {
         date: now.toISOString().slice(0, 10), time: now.toTimeString().slice(0, 5),
-        customer, barber, method, branch,
+        customer, customerType, barber, method, branch,
         items: cart.map((c) => ({ name: c.name, price: c.price })),
         itemsLabel: cart.map((c) => c.name).join(", "),
         amount: total, cashier: currentProfile ? currentProfile.name : "—",
         createdAt: serverTimestamp(), ms: Date.now(), voided: false,
-      });
+      };
+      const ref = await addDoc(collection(db, "sales"), saleData);
       await logAudit(`Charged ${money(total)} to ${customer}`, "Medium");
       toast(`Charged ${money(total)}.`, "good");
       cart = []; renderCart();
+      openReceiptModal({ id: ref.id, ...saleData, ms: Date.now() });
     } catch (err) {
       toast("Couldn't save the sale: " + (err.message || "unknown error"), "bad");
     } finally { chargeBtn.disabled = false; }
@@ -948,18 +1078,25 @@ function renderPOS(root) {
     columns: [
       { key: "id", label: "Receipt", mono: true, render: (r) => r.id.slice(0, 8).toUpperCase() },
       { key: "date", label: "Date", mono: true }, { key: "time", label: "Time", mono: true },
-      { key: "customer", label: "Customer" }, { key: "barber", label: "Barber" }, { key: "itemsLabel", label: "Items" },
+      { key: "customer", label: "Customer" }, { key: "customerType", label: "Type", render: (r) => pill(r.customerType || "Walk-in", { "Walk-in": "neutral", Appointment: "info", Regular: "good", Corporate: "warn", VIP: "bad" }) },
+      { key: "barber", label: "Barber" }, { key: "itemsLabel", label: "Items" },
       { key: "method", label: "Payment", render: (r) => pill(r.method, { Cash: "neutral", "M-Pesa": "info", Card: "info", Mixed: "warn" }) },
       { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => (r.voided ? `<s>${money(r.amount)}</s>` : money(r.amount)) },
     ],
     rows: () => DATA.sales, searchKeys: ["customer", "barber", "itemsLabel"],
     filters: [
       { key: "method", label: "Payment", options: ["Cash", "M-Pesa", "Card", "Mixed"] },
+      { key: "customerType", label: "Type", options: CUSTOMER_TYPES },
       { key: "barber", label: "Barber", options: [...new Set(DATA.sales.map((s) => s.barber).filter(Boolean))] },
     ],
     defaultSort: { key: "ms", dir: "desc" },
-    rowActions: (r) => (r.voided ? `<span class="pill pill-neutral">Voided</span>` : actionsDropdown(r.id, [{ label: "Void receipt", act: "void", danger: true }])),
+    rowActions: (r) => {
+      const actions = [{ label: "View receipt", act: "receipt" }];
+      if (!r.voided && canWrite("pos")) actions.push({ label: "Void receipt", act: "void", danger: true });
+      return actionsDropdown(r.id, actions);
+    },
     onMount: (container) => wireActionsDropdown(container, {
+      receipt: (rowId) => { const row = DATA.sales.find((x) => x.id === rowId); if (row) openReceiptModal(row); },
       void: async (rowId) => {
         if (!confirm("Void this receipt? It will be excluded from revenue totals.")) return;
         await updateDoc(doc(db, "sales", rowId), { voided: true });
@@ -968,6 +1105,78 @@ function renderPOS(root) {
       },
     }),
   });
+}
+
+/* ============================================================
+   SERVICE RECEIPT — shown after every completed sale, and re-openable
+   from the transactions table. Same branded letterhead as reports/payslips.
+   ============================================================ */
+function openReceiptModal(sale) {
+  const receiptNo = "RCT-" + sale.id.slice(0, 8).toUpperCase();
+  const when = sale.date && sale.time ? `${sale.date} · ${sale.time}` : new Date(sale.ms || Date.now()).toLocaleString("en-KE");
+  const root = document.getElementById("modal-root");
+  root.innerHTML = `<div class="modal-overlay" id="modal-overlay"><div class="modal" style="max-width:420px;">
+    <div class="modal-head"><h3 class="modal-title">Service receipt</h3><button class="modal-close" id="rc-close">✕</button></div>
+    <div class="receipt-card">
+      <div style="background:var(--ink);color:#fff;padding:14px 16px;position:relative;">
+        <div style="height:4px;margin:-14px -16px 10px;background:repeating-linear-gradient(90deg,var(--red) 0 14px,#fff 14px 20px,var(--blue) 20px 34px);"></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <img src="${SHOP_SETTINGS.logo || ""}" style="width:32px;height:32px;border-radius:9px;object-fit:cover;${SHOP_SETTINGS.logo ? "" : "background:repeating-linear-gradient(45deg,var(--red) 0 6px,#fff 6px 12px,var(--blue) 12px 18px);"}" onerror="this.removeAttribute('src');" />
+          <div><div style="font-family:var(--font-d);font-weight:700;font-size:14.5px;">${escapeHtml(SHOP_SETTINGS.name || "Barbershop")}</div>
+          <div style="font-size:10.5px;color:#9A98A0;">${escapeHtml(SHOP_SETTINGS.location || "")}</div></div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#C9C7CF;display:flex;justify-content:space-between;">
+          <span>Receipt <b class="mono" style="color:#fff;">${receiptNo}</b></span><span class="mono">${escapeHtml(when)}</span>
+        </div>
+      </div>
+      <div class="receipt-lines">
+        <div class="receipt-line"><span>Customer</span><span>${escapeHtml(sale.customer || "Walk-in")}</span></div>
+        <div class="receipt-line"><span>Customer type</span><span>${escapeHtml(sale.customerType || "Walk-in")}</span></div>
+        <div class="receipt-line"><span>Barber</span><span>${escapeHtml(sale.barber || "—")}</span></div>
+        <div class="receipt-line"><span>Branch</span><span>${escapeHtml(sale.branch || "—")}</span></div>
+        <div class="receipt-line"><span>Cashier</span><span>${escapeHtml(sale.cashier || "—")}</span></div>
+        <div class="receipt-line"><span>Payment method</span><span>${escapeHtml(sale.method || "—")}</span></div>
+        <div style="border-top:1px solid var(--line);margin:8px 0;"></div>
+        ${(sale.items || []).map((it) => `<div class="receipt-line"><span>${escapeHtml(it.name)}</span><span>${money(it.price)}</span></div>`).join("")}
+      </div>
+      <div class="receipt-total-row"><span>Total</span><span>${money(sale.amount)}</span></div>
+      <div class="powered-by-doc" style="border:none;margin:0;padding:10px 16px 14px;">Powered by <b>Omlin</b></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="rc-close2">Close</button><button class="btn btn-primary" id="rc-pdf">${ICONS.download}Download PDF</button></div>
+  </div></div>`;
+  document.getElementById("modal-overlay").addEventListener("click", (e) => { if (e.target.id === "modal-overlay") closeModal(); });
+  document.getElementById("rc-close").onclick = closeModal;
+  document.getElementById("rc-close2").onclick = closeModal;
+  document.getElementById("rc-pdf").onclick = () => downloadReceiptPDF(sale, receiptNo, when);
+}
+function downloadReceiptPDF(sale, receiptNo, when) {
+  const pdf = newBrandedDoc(); if (!pdf) return;
+  const identifiers = [
+    { label: "Receipt No.", value: receiptNo }, { label: "Date & time", value: when },
+    { label: "Customer type", value: sale.customerType || "Walk-in" }, { label: "Payment", value: sale.method || "—" },
+  ];
+  let y = drawBrandedHeader(pdf, "Service Receipt", identifiers);
+  pdf.setFont("helvetica", "bold"); pdf.setFontSize(9.5); pdf.setTextColor(27, 29, 34);
+  pdf.text(`Customer: ${sale.customer || "Walk-in"}`, 40, y + 6);
+  pdf.text(`Barber: ${sale.barber || "—"}`, 300, y + 6);
+  pdf.setFont("helvetica", "normal");
+  pdf.text(`Branch: ${sale.branch || "—"}`, 40, y + 22);
+  pdf.text(`Cashier: ${sale.cashier || "—"}`, 300, y + 22);
+  y += 38;
+  pdf.autoTable({
+    startY: y,
+    head: [["Service", "Price"]],
+    body: (sale.items || []).map((it) => [it.name, money(it.price)]),
+    foot: [["Total", money(sale.amount)]],
+    margin: { left: 40, right: 40, bottom: 44 },
+    styles: { font: "helvetica", fontSize: 9.5, cellPadding: 6, textColor: [27, 29, 34], lineColor: [216, 212, 200] },
+    headStyles: { fillColor: PDF_INK, textColor: [255, 255, 255], fontStyle: "bold" },
+    footStyles: { fillColor: [239, 237, 231], textColor: [27, 29, 34], fontStyle: "bold" },
+    columnStyles: { 1: { halign: "right" } },
+  });
+  drawBrandedFooter(pdf);
+  pdf.save(receiptNo + ".pdf");
+  toast("Receipt downloaded.", "good");
 }
 
 function customerStats(name) {
@@ -980,7 +1189,7 @@ function renderCustomers(root) {
   const barberNames = DATA.barbers.map((b) => b.name);
   renderCrudPage(root, {
     eyebrow: "Client book", title: "Customers", singular: "Customer", addLabel: "New customer",
-    collectionName: "customers",
+    collectionName: "customers", moduleKey: "customers",
     fields: [
       { key: "name", label: "Full name", required: true },
       { key: "phone", label: "Phone" },
@@ -1008,25 +1217,29 @@ function barberStats(name) {
   const customers = new Set(rows.map((s) => s.customer)).size;
   return { revenue, customers };
 }
+// Sensitive pay figures (commission %, base salary, deductions) live in the
+// separate `barberPay` collection, keyed by the barber's doc id, so they can
+// be Firestore-rule-gated to the payroll module instead of the barbers module.
+function barberPayProfile(barberName) {
+  const b = DATA.barbers.find((x) => x.name === barberName);
+  const p = b && DATA.barberPay.find((x) => x.id === b.id);
+  return p || { commissionRate: 30, baseSalary: 0, deductions: 0 };
+}
 function renderBarbers(root) {
   renderCrudPage(root, {
     eyebrow: "Team performance", title: "Barbers", singular: "Barber", addLabel: "Add barber",
-    collectionName: "barbers",
+    collectionName: "barbers", moduleKey: "barbers",
     fields: [
       { key: "name", label: "Full name", required: true },
       { key: "specialty", label: "Specialty" },
       { key: "phone", label: "Phone" },
       { key: "status", label: "Status", type: "select", options: ["Active", "On Leave"] },
       { key: "branch", label: "Branch", type: "select", options: BRANCHES },
-      { key: "commissionRate", label: "Commission %", type: "number", step: "1", default: 30 },
-      { key: "baseSalary", label: "Base salary (KSh)", type: "number", step: "1", default: 15000 },
-      { key: "deductions", label: "Monthly deductions (KSh)", type: "number", step: "1", default: 0 },
     ],
     columns: [
       { key: "name", label: "Barber" }, { key: "specialty", label: "Specialty" },
       { key: "status", label: "Status", render: (r) => pill(r.status) },
       { key: "phone", label: "Phone", mono: true },
-      { key: "commissionRate", label: "Commission", align: "right", render: (r) => `${r.commissionRate || 0}%` },
       { key: "revenue", label: "Revenue", mono: true, align: "right", render: (r) => money(barberStats(r.name).revenue) },
       { key: "customers", label: "Customers", align: "right", render: (r) => barberStats(r.name).customers },
     ],
@@ -1039,7 +1252,7 @@ function renderBarbers(root) {
 function renderServices(root) {
   renderCrudPage(root, {
     eyebrow: "Price list", title: "Services", singular: "Service", addLabel: "New service",
-    collectionName: "services",
+    collectionName: "services", moduleKey: "services",
     fields: [
       { key: "name", label: "Service name", required: true },
       { key: "category", label: "Category" },
@@ -1068,7 +1281,7 @@ function renderInventory(root) {
   const supplierNames = DATA.suppliers.map((s) => s.name);
   renderCrudPage(root, {
     eyebrow: "Stock control", title: "Inventory", singular: "Item", addLabel: "Receive stock",
-    collectionName: "inventory",
+    collectionName: "inventory", moduleKey: "inventory",
     fields: [
       { key: "name", label: "Item name", required: true },
       { key: "category", label: "Category" },
@@ -1095,7 +1308,7 @@ function renderInventory(root) {
 function renderSuppliers(root) {
   renderCrudPage(root, {
     eyebrow: "Vendors", title: "Suppliers", singular: "Supplier", addLabel: "Add supplier",
-    collectionName: "suppliers",
+    collectionName: "suppliers", moduleKey: "suppliers",
     fields: [
       { key: "name", label: "Supplier name", required: true },
       { key: "contact", label: "Contact" },
@@ -1116,7 +1329,7 @@ function renderExpenses(root) {
   const totalMonth = DATA.expenses.reduce((a, e) => a + (e.amount || 0), 0);
   renderCrudPage(root, {
     eyebrow: `Month to date · ${money(totalMonth)}`, title: "Expenses", singular: "Expense", addLabel: "Log expense",
-    collectionName: "expenses",
+    collectionName: "expenses", moduleKey: "expenses",
     fields: [
       { key: "date", label: "Date", type: "date", required: true, default: todayStr() },
       { key: "category", label: "Category" },
@@ -1135,15 +1348,61 @@ function renderExpenses(root) {
   });
 }
 
+/* ============================================================
+   BRANCHES MODULE
+   Every branch created here feeds the shared BRANCHES list used
+   throughout the app (POS, Barbers, Inventory, Expenses, Reports...).
+   ============================================================ */
+function renderBranches(root) {
+  renderCrudPage(root, {
+    eyebrow: `${DATA.branches.length || DEFAULT_BRANCH_NAMES.length} branch(es) on record`, title: "Branches", singular: "Branch", addLabel: "Add branch",
+    collectionName: "branches", moduleKey: "branches",
+    fields: [
+      { key: "name", label: "Branch name", required: true, placeholder: "e.g. CBD Branch" },
+      { key: "location", label: "Location / address", placeholder: "e.g. Moi Avenue, Nairobi" },
+      { key: "phone", label: "Phone number", placeholder: "+254 7XX XXX XXX" },
+      { key: "manager", label: "Branch manager" },
+      { key: "status", label: "Status", type: "select", options: ["Active", "Inactive"], default: "Active" },
+    ],
+    columns: [
+      { key: "name", label: "Branch" }, { key: "location", label: "Location" },
+      { key: "phone", label: "Phone", mono: true }, { key: "manager", label: "Manager" },
+      { key: "barberCount", label: "Barbers", align: "right", render: (r) => DATA.barbers.filter((b) => b.branch === r.name).length },
+      { key: "status", label: "Status", render: (r) => pill(r.status || "Active") },
+    ],
+    searchKeys: ["name", "location", "manager"],
+    filters: [{ key: "status", label: "Status", options: ["Active", "Inactive"] }],
+    defaultSort: { key: "name", dir: "asc" },
+  });
+}
+
+const PAY_PERIOD_TYPES = ["Week", "Month"];
+const SALARY_PAY_METHODS = ["Cash", "M-Pesa", "Bank Transfer", "Cheque"];
+
 function renderPayroll(root) {
   const rows = DATA.barbers.map((b) => {
     const stats = barberStats(b.name);
-    const commission = Math.round(stats.revenue * ((b.commissionRate || 0) / 100));
-    const base = b.baseSalary || 15000;
-    const deductions = b.deductions || 0;
+    const pay = barberPayProfile(b.name);
+    const commission = Math.round(stats.revenue * ((pay.commissionRate || 0) / 100));
+    const base = pay.baseSalary || 15000;
+    const deductions = pay.deductions || 0;
     return { id: b.id, name: b.name, base, commission, deductions, net: base + commission - deductions };
   });
-  root.innerHTML = `${sectionHeader("Current pay run", "Payroll")}<div id="payroll-table"></div>`;
+  const payWritable = canWrite("payroll");
+  const totalPaidThisMonth = DATA.salaryPayments
+    .filter((p) => (p.paymentDate || "").slice(0, 7) === todayStr().slice(0, 7))
+    .reduce((a, p) => a + (p.netPay || 0), 0);
+
+  root.innerHTML = `
+    ${sectionHeader("Current pay run", "Payroll")}
+    <div id="payroll-table"></div>
+
+    <div class="section-header" style="margin-top:26px;">
+      <div><div class="eyebrow">Paid this month · ${money(totalPaidThisMonth)}</div><h1 class="h1" style="font-size:22px;">Salary Expense</h1></div>
+      ${payWritable ? addBtn("Record salary payment", "add-salary") : ""}
+    </div>
+    <div id="salary-table"></div>`;
+
   mountDataTable(document.getElementById("payroll-table"), {
     columns: [
       { key: "name", label: "Employee" }, { key: "base", label: "Base salary", mono: true, align: "right", render: (r) => money(r.base) },
@@ -1152,7 +1411,154 @@ function renderPayroll(root) {
       { key: "net", label: "Net pay", mono: true, align: "right", render: (r) => money(r.net) },
     ],
     rows, searchKeys: ["name"], filters: [], defaultSort: { key: "name", dir: "asc" },
+    rowActions: payWritable ? (r) => actionsDropdown(r.id, [{ label: "Edit pay profile", act: "editpay" }]) : undefined,
+    onMount: (container) => wireActionsDropdown(container, {
+      editpay: (rowId) => { const row = rows.find((x) => x.id === rowId); if (row) openEditPayProfileModal(row); },
+    }),
   });
+
+  if (payWritable) document.getElementById("add-salary").onclick = openRecordSalaryModal;
+
+  mountDataTable(document.getElementById("salary-table"), {
+    columns: [
+      { key: "paymentDate", label: "Payment date", mono: true },
+      { key: "staffName", label: "Staff" },
+      { key: "periodLabel", label: "Pay period" },
+      { key: "basicSalary", label: "Basic", mono: true, align: "right", render: (r) => money(r.basicSalary) },
+      { key: "allowances", label: "Allowances", mono: true, align: "right", render: (r) => money(r.allowances) },
+      { key: "deductions", label: "Deductions", mono: true, align: "right", render: (r) => money(r.deductions) },
+      { key: "netPay", label: "Net pay", mono: true, align: "right", render: (r) => money(r.netPay) },
+      { key: "paymentMethod", label: "Method", render: (r) => pill(r.paymentMethod, { Cash: "neutral", "M-Pesa": "info", "Bank Transfer": "good", Cheque: "warn" }) },
+      { key: "refNo", label: "Ref no.", mono: true },
+    ],
+    rows: () => DATA.salaryPayments, searchKeys: ["staffName", "refNo"],
+    filters: [
+      { key: "staffName", label: "Staff", options: [...new Set(DATA.salaryPayments.map((p) => p.staffName).filter(Boolean))] },
+      { key: "paymentMethod", label: "Method", options: SALARY_PAY_METHODS },
+    ],
+    defaultSort: { key: "paymentDate", dir: "desc" },
+    rowActions: (r) => actionsDropdown(r.id, [{ label: "Download payslip", act: "payslip" }]),
+    onMount: (container) => wireActionsDropdown(container, {
+      payslip: (rowId) => { const row = DATA.salaryPayments.find((x) => x.id === rowId); if (row) downloadPayslipPDF(row); },
+    }),
+  });
+}
+
+function openEditPayProfileModal(row) {
+  const pay = barberPayProfile(row.name);
+  openModal(`
+    <div class="modal-head"><h3 class="modal-title">Pay profile · ${escapeHtml(row.name)}</h3><button class="modal-close" id="pp-close">✕</button></div>
+    <p style="font-size:12px;color:var(--text-dim);margin:0 0 12px;">Visible only to Payroll. This is kept separate from the Barbers page on purpose.</p>
+    <div class="field"><label>Base salary (KSh)</label><input id="pp-base" type="number" step="1" value="${pay.baseSalary || 0}" /></div>
+    <div class="field"><label>Commission %</label><input id="pp-comm" type="number" step="1" value="${pay.commissionRate || 0}" /></div>
+    <div class="field"><label>Monthly deductions (KSh)</label><input id="pp-ded" type="number" step="1" value="${pay.deductions || 0}" /></div>
+    <div id="pp-error"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="pp-cancel">Cancel</button><button class="btn btn-primary" id="pp-save">Save pay profile</button></div>
+  `);
+  document.getElementById("pp-close").onclick = closeModal;
+  document.getElementById("pp-cancel").onclick = closeModal;
+  document.getElementById("pp-save").onclick = async () => {
+    const baseSalary = parseFloat(document.getElementById("pp-base").value) || 0;
+    const commissionRate = parseFloat(document.getElementById("pp-comm").value) || 0;
+    const deductions = parseFloat(document.getElementById("pp-ded").value) || 0;
+    const btn = document.getElementById("pp-save");
+    btn.disabled = true; btn.textContent = "Saving...";
+    try {
+      await setDoc(doc(db, "barberPay", row.id), { baseSalary, commissionRate, deductions }, { merge: true });
+      await logAudit(`Updated pay profile for ${row.name}`, "High");
+      toast("Pay profile saved.", "good");
+      closeModal();
+    } catch (err) {
+      document.getElementById("pp-error").innerHTML = `<div class="auth-error">${escapeHtml(err.message || "Couldn't save that pay profile.")}</div>`;
+      btn.disabled = false; btn.textContent = "Save pay profile";
+    }
+  };
+}
+
+function openRecordSalaryModal() {
+  const staffOptions = [...new Set([...DATA.barbers.map((b) => b.name), ...staffDocs.map((s) => s.name)].filter(Boolean))];
+  openModal(`
+    <div class="modal-head"><h3 class="modal-title">Record salary payment</h3><button class="modal-close" id="sp-close">✕</button></div>
+    <div class="field"><label>Staff member</label>
+      <select id="sp-staff">${staffOptions.length ? staffOptions.map((n) => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("") : `<option value="">—</option>`}</select></div>
+    <div class="field"><label>Pay period</label>
+      <select id="sp-period-type">${PAY_PERIOD_TYPES.map((t) => `<option value="${t}">${t}</option>`).join("")}</select></div>
+    <div class="field"><label>Period covered</label><input id="sp-period-label" placeholder="e.g. July 2026, or Week of 20 Jul" /></div>
+    <div class="field"><label>Basic salary (KSh)</label><input id="sp-basic" type="number" step="1" value="15000" /></div>
+    <div class="field"><label>Allowances (KSh)</label><input id="sp-allow" type="number" step="1" value="0" /></div>
+    <div class="field"><label>Deductions (KSh)</label><input id="sp-ded" type="number" step="1" value="0" /></div>
+    <div class="field"><label>Payment date</label><input id="sp-date" type="date" value="${todayStr()}" /></div>
+    <div class="field"><label>Payment method</label>
+      <select id="sp-method">${SALARY_PAY_METHODS.map((m) => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("")}</select></div>
+    <div id="sp-error"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="sp-cancel">Cancel</button><button class="btn btn-primary" id="sp-save">Record & generate payslip</button></div>
+  `);
+  document.getElementById("sp-close").onclick = closeModal;
+  document.getElementById("sp-cancel").onclick = closeModal;
+  document.getElementById("sp-save").onclick = async () => {
+    const staffName = document.getElementById("sp-staff").value;
+    const periodType = document.getElementById("sp-period-type").value;
+    const periodLabel = document.getElementById("sp-period-label").value.trim() || `${periodType} ending ${todayStr()}`;
+    const basicSalary = parseFloat(document.getElementById("sp-basic").value) || 0;
+    const allowances = parseFloat(document.getElementById("sp-allow").value) || 0;
+    const deductions = parseFloat(document.getElementById("sp-ded").value) || 0;
+    const paymentDate = document.getElementById("sp-date").value || todayStr();
+    const paymentMethod = document.getElementById("sp-method").value;
+    const errEl = document.getElementById("sp-error");
+    errEl.innerHTML = "";
+    if (!staffName || basicSalary <= 0) { errEl.innerHTML = `<div class="auth-error">Choose a staff member and a basic salary greater than zero.</div>`; return; }
+    const netPay = basicSalary + allowances - deductions;
+    const refNo = "PS-" + Date.now().toString().slice(-8);
+    const btn = document.getElementById("sp-save");
+    btn.disabled = true; btn.textContent = "Saving...";
+    const payment = { staffName, periodType, periodLabel, basicSalary, allowances, deductions, netPay, paymentDate, paymentMethod, refNo, recordedBy: currentProfile ? currentProfile.name : "—" };
+    try {
+      const ref = await addDoc(collection(db, "salaryPayments"), payment);
+      await logAudit(`Recorded salary payment of ${money(netPay)} for ${staffName}`, "High");
+      toast("Salary payment recorded.", "good");
+      closeModal();
+      downloadPayslipPDF({ id: ref.id, ...payment });
+    } catch (err) {
+      errEl.innerHTML = `<div class="auth-error">${escapeHtml(err.message || "Couldn't save that payment.")}</div>`;
+      btn.disabled = false; btn.textContent = "Record & generate payslip";
+    }
+  };
+}
+
+function downloadPayslipPDF(payment) {
+  const pdf = newBrandedDoc(); if (!pdf) return;
+  const staff = DATA.barbers.find((b) => b.name === payment.staffName);
+  const identifiers = [
+    { label: "Payslip No.", value: payment.refNo }, { label: "Pay period", value: payment.periodLabel },
+    { label: "Payment date", value: payment.paymentDate }, { label: "Method", value: payment.paymentMethod },
+  ];
+  let y = drawBrandedHeader(pdf, "Payslip", identifiers);
+  pdf.setFont("helvetica", "bold"); pdf.setFontSize(10); pdf.setTextColor(27, 29, 34);
+  pdf.text("Employee details", 40, y + 8);
+  pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5);
+  pdf.text(`Name: ${payment.staffName}`, 40, y + 24);
+  pdf.text(`Role: ${staff ? (staff.specialty || "Staff") : "Staff"}`, 40, y + 38);
+  pdf.text(`Phone: ${staff ? (staff.phone || "—") : "—"}`, 300, y + 24);
+  pdf.text(`Recorded by: ${payment.recordedBy || "—"}`, 300, y + 38);
+  y += 56;
+  pdf.autoTable({
+    startY: y,
+    head: [["Earnings / Deductions", "Amount"]],
+    body: [
+      ["Basic salary", money(payment.basicSalary)],
+      ["Allowances", money(payment.allowances || 0)],
+      ["Deductions", "-" + money(payment.deductions || 0)],
+    ],
+    foot: [["Net pay", money(payment.netPay)]],
+    margin: { left: 40, right: 40, bottom: 44 },
+    styles: { font: "helvetica", fontSize: 9.5, cellPadding: 6, textColor: [27, 29, 34], lineColor: [216, 212, 200] },
+    headStyles: { fillColor: PDF_INK, textColor: [255, 255, 255], fontStyle: "bold" },
+    footStyles: { fillColor: [225, 235, 227], textColor: [62, 107, 79], fontStyle: "bold" },
+    columnStyles: { 1: { halign: "right" } },
+  });
+  drawBrandedFooter(pdf);
+  pdf.save(payment.refNo + "-payslip.pdf");
+  toast("Payslip downloaded.", "good");
 }
 
 /* ============================================================
@@ -1379,7 +1785,7 @@ const REPORT_CATEGORIES = [
       return rowTable([{ key: "name", label: "Barber" }, { key: "avg", label: "Avg. customers/day", align: "right" }], data, ["name"], { key: "avg", dir: "desc" }); } },
   { id: "commission-report", label: "Commission Report", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
       const rows = scopeSales(ctx);
-      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_SUM("amount", "Revenue"), { key: "commission", label: "Commission earned", mono: true, align: "right", render: (r) => money(r.commission), fn: (rs) => { const b = DATA.barbers.find((x) => x.name === rs[0]?.barber); const rate = (b && b.commissionRate) || 30; return Math.round(rs.reduce((a, r) => a + (r.amount || 0), 0) * (rate / 100)); } }]); } },
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_SUM("amount", "Revenue"), { key: "commission", label: "Commission earned", mono: true, align: "right", render: (r) => money(r.commission), fn: (rs) => { const rate = barberPayProfile(rs[0]?.barber).commissionRate || 30; return Math.round(rs.reduce((a, r) => a + (r.amount || 0), 0) * (rate / 100)); } }]); } },
   { id: "tips-earned", label: "Tips Earned", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
       const rows = scopeSales(ctx);
       return groupReport(rows, (s) => s.barber || "—", "Barber", [AGG_SUM("tip", "Tips earned"), AGG_COUNT("Tickets")]); } },
@@ -1598,7 +2004,7 @@ const REPORT_CATEGORIES = [
       const rows = scopeExpenses(ctx).filter((e) => e.category === "Rent");
       return rowTable([{ key: "date", label: "Date", mono: true }, { key: "desc", label: "Description" }, { key: "amount", label: "Amount", mono: true, align: "right", render: (r) => money(r.amount) }], rows, ["desc"], { key: "date", dir: "desc" }); } },
   { id: "salaries-report", label: "Salaries Report", filters: ["branch"], run: (ctx) => {
-      return rowTable([{ key: "name", label: "Employee" }, { key: "base", label: "Base salary", mono: true, align: "right", render: (r) => money(r.base) }], DATA.barbers.map((b) => ({ name: b.name, base: b.baseSalary || 0 })), ["name"], { key: "base", dir: "desc" }); } },
+      return rowTable([{ key: "name", label: "Employee" }, { key: "base", label: "Base salary", mono: true, align: "right", render: (r) => money(r.base) }], DATA.barbers.map((b) => ({ name: b.name, base: barberPayProfile(b.name).baseSalary || 0 })), ["name"], { key: "base", dir: "desc" }); } },
   { id: "marketing-expenses", label: "Marketing Expenses", filters: ["dateRange", "branch"], run: (ctx) => {
       const rows = scopeExpenses(ctx).filter((e) => e.category === "Marketing"); return groupReport(rows, (e) => e.date.slice(0, 7), "Month", [AGG_SUM("amount", "Total")]); } },
   { id: "equipment-maintenance", label: "Equipment Maintenance Costs", filters: ["dateRange", "branch"], run: (ctx) => {
@@ -1638,9 +2044,9 @@ const REPORT_CATEGORIES = [
 { key: "payroll", label: "Commission & Payroll Reports", reports: [
   { id: "barber-commission", label: "Barber Commission Report", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
       const rows = scopeSales(ctx);
-      return groupReport(rows, (s) => s.barber || "—", "Barber", [{ key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission), fn: (rs) => { const b = DATA.barbers.find((x) => x.name === rs[0]?.barber); const rate = (b && b.commissionRate) || 30; return Math.round(rs.reduce((a, r) => a + (r.amount || 0), 0) * (rate / 100)); } }]); } },
+      return groupReport(rows, (s) => s.barber || "—", "Barber", [{ key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission), fn: (rs) => { const rate = barberPayProfile(rs[0]?.barber).commissionRate || 30; return Math.round(rs.reduce((a, r) => a + (r.amount || 0), 0) * (rate / 100)); } }]); } },
   { id: "payroll-summary", label: "Payroll Summary", filters: ["branch"], run: () => {
-      const rows = DATA.barbers.map((b) => { const rev = DATA.sales.filter((s) => s.barber === b.name && !s.voided).reduce((a, s) => a + (s.amount || 0), 0); const commission = Math.round(rev * ((b.commissionRate || 0) / 100)); const base = b.baseSalary || 0; const deductions = b.deductions || 0; return { name: b.name, base, commission, deductions, net: base + commission - deductions }; });
+      const rows = DATA.barbers.map((b) => { const pay = barberPayProfile(b.name); const rev = DATA.sales.filter((s) => s.barber === b.name && !s.voided).reduce((a, s) => a + (s.amount || 0), 0); const commission = Math.round(rev * ((pay.commissionRate || 0) / 100)); const base = pay.baseSalary || 0; const deductions = pay.deductions || 0; return { name: b.name, base, commission, deductions, net: base + commission - deductions }; });
       return rowTable([{ key: "name", label: "Employee" }, { key: "base", label: "Base", mono: true, align: "right", render: (r) => money(r.base) }, { key: "commission", label: "Commission", mono: true, align: "right", render: (r) => money(r.commission) }, { key: "deductions", label: "Deductions", mono: true, align: "right", render: (r) => money(r.deductions) }, { key: "net", label: "Net pay", mono: true, align: "right", render: (r) => money(r.net) }], rows, ["name"], { key: "net", dir: "desc" }); } },
   { id: "overtime-report", label: "Overtime Report", filters: ["dateRange", "branch", "barber"], run: (ctx) => {
       const rows = scopeAttendance({ ...ctx, status: "Present" });
@@ -1649,9 +2055,9 @@ const REPORT_CATEGORIES = [
       const rows = DATA.barbers.map((b) => { const rev = DATA.sales.filter((s) => s.barber === b.name && !s.voided).reduce((a, s) => a + (s.amount || 0), 0); return { name: b.name, bonus: rev > 100000 ? Math.round(rev * 0.02) : 0 }; });
       return rowTable([{ key: "name", label: "Barber" }, { key: "bonus", label: "Performance bonus", mono: true, align: "right", render: (r) => money(r.bonus) }], rows, ["name"], { key: "bonus", dir: "desc" }); } },
   { id: "deductions-report", label: "Deductions Report", filters: ["branch", "barber"], run: () => {
-      return rowTable([{ key: "name", label: "Employee" }, { key: "deductions", label: "Deductions", mono: true, align: "right", render: (r) => money(r.deductions) }], DATA.barbers.map((b) => ({ name: b.name, deductions: b.deductions || 0 })), ["name"], { key: "deductions", dir: "desc" }); } },
+      return rowTable([{ key: "name", label: "Employee" }, { key: "deductions", label: "Deductions", mono: true, align: "right", render: (r) => money(r.deductions) }], DATA.barbers.map((b) => ({ name: b.name, deductions: barberPayProfile(b.name).deductions || 0 })), ["name"], { key: "deductions", dir: "desc" }); } },
   { id: "net-salary", label: "Net Salary Report", filters: ["branch", "barber"], run: () => {
-      const rows = DATA.barbers.map((b) => { const rev = DATA.sales.filter((s) => s.barber === b.name && !s.voided).reduce((a, s) => a + (s.amount || 0), 0); const commission = Math.round(rev * ((b.commissionRate || 0) / 100)); return { name: b.name, net: (b.baseSalary || 0) + commission - (b.deductions || 0) }; });
+      const rows = DATA.barbers.map((b) => { const pay = barberPayProfile(b.name); const rev = DATA.sales.filter((s) => s.barber === b.name && !s.voided).reduce((a, s) => a + (s.amount || 0), 0); const commission = Math.round(rev * ((pay.commissionRate || 0) / 100)); return { name: b.name, net: (pay.baseSalary || 0) + commission - (pay.deductions || 0) }; });
       return rowTable([{ key: "name", label: "Employee" }, { key: "net", label: "Net salary", mono: true, align: "right", render: (r) => money(r.net) }], rows, ["name"], { key: "net", dir: "desc" }); } },
 ]},
 
@@ -1802,46 +2208,101 @@ function scopeAttendanceReport(ctx) {
   return rowTable([{ key: "date", label: "Date", mono: true }, { key: "barber", label: "Barber" }, { key: "status", label: "Status", render: (r) => pill(r.status, { Present: "good", Absent: "bad", Late: "warn" }) }], rows, ["barber"], { key: "date", dir: "desc" });
 }
 
-/* ---------- export helpers ---------- */
+/* ---------- shared helpers ---------- */
 function cellPlainText(col, r) {
   if (col.csv) return col.csv(r);
   const raw = col.render ? col.render(r) : (r[col.key] ?? "");
   return String(raw).replace(/<[^>]+>/g, "").trim();
 }
-function downloadBlob(content, filename, mime) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
-}
-function csvEsc(v) { v = String(v ?? ""); return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; }
-function exportCSV(columns, rows, filename) {
-  const header = columns.map((c) => csvEsc(c.label)).join(",");
-  const lines = rows.map((r) => columns.map((c) => csvEsc(cellPlainText(c, r))).join(","));
-  downloadBlob([header, ...lines].join("\r\n"), filename + ".csv", "text/csv;charset=utf-8;");
-  toast("CSV exported.", "good");
-}
 function htmlEsc(v) { return String(v ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
-function exportExcel(columns, rows, filename) {
-  const header = columns.map((c) => `<th>${htmlEsc(c.label)}</th>`).join("");
-  const body = rows.map((r) => `<tr>${columns.map((c) => `<td>${htmlEsc(cellPlainText(c, r))}</td>`).join("")}</tr>`).join("");
-  const html = `<html><head><meta charset="UTF-8"></head><body><table border="1">${"<tr>" + header + "</tr>"}${body}</table></body></html>`;
-  downloadBlob(html, filename + ".xls", "application/vnd.ms-excel");
-  toast("Excel file exported.", "good");
+
+/* ============================================================
+   BRANDED PDF ENGINE
+   Every downloadable document in the app (reports, service receipts,
+   payslips) shares this one letterhead + footer so they all look like
+   they came from the same premium, on-brand system.
+   ============================================================ */
+const PDF_INK = [21, 23, 28], PDF_RED = [178, 58, 52], PDF_BLUE = [46, 71, 99], PDF_GOLD = [169, 120, 47], PDF_TEXTDIM = [107, 106, 99];
+
+function newBrandedDoc() {
+  if (!window.jspdf) { toast("PDF library is still loading — try again in a moment.", "bad"); return null; }
+  const { jsPDF } = window.jspdf;
+  return new jsPDF({ unit: "pt", format: "a4" });
 }
-function exportPDF(title, columns, rows) {
-  const header = columns.map((c) => `<th>${htmlEsc(c.label)}</th>`).join("");
-  const body = rows.map((r) => `<tr>${columns.map((c) => `<td>${htmlEsc(cellPlainText(c, r))}</td>`).join("")}</tr>`).join("");
-  const container = document.createElement("div");
-  container.id = "print-report-root";
-  container.innerHTML = `<h2>${htmlEsc(SHOP_SETTINGS.name || "Barbershop")} — ${htmlEsc(title)}</h2>
-    <div style="font-size:11px;color:#555;margin-bottom:10px;">Generated ${new Date().toLocaleString("en-KE")}</div>
-    <table>${"<tr>" + header + "</tr>"}${body}</table>`;
-  document.body.appendChild(container);
-  document.body.classList.add("printing-report");
-  window.print();
-  setTimeout(() => { document.body.classList.remove("printing-report"); container.remove(); }, 300);
+// Draws the shop logo / name / document title + a strip of key identifiers.
+// Returns the Y coordinate the caller should start drawing content at.
+function drawBrandedHeader(pdf, title, identifiers) {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  pdf.setFillColor(...PDF_INK); pdf.rect(0, 0, pageWidth, 78, "F");
+  pdf.setFillColor(...PDF_RED); pdf.rect(0, 78, pageWidth * 0.42, 4, "F");
+  pdf.setFillColor(255, 255, 255); pdf.rect(pageWidth * 0.42, 78, pageWidth * 0.18, 4, "F");
+  pdf.setFillColor(...PDF_BLUE); pdf.rect(pageWidth * 0.6, 78, pageWidth * 0.4, 4, "F");
+
+  let textX = 40;
+  if (SHOP_SETTINGS.logo) {
+    try {
+      const fmt = SHOP_SETTINGS.logo.includes("image/png") ? "PNG" : "JPEG";
+      pdf.addImage(SHOP_SETTINGS.logo, fmt, 40, 16, 44, 44, undefined, "FAST");
+      textX = 96;
+    } catch (e) { /* logo failed to decode — fall back to text only */ }
+  }
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFont("helvetica", "bold"); pdf.setFontSize(16);
+  pdf.text(SHOP_SETTINGS.name || "Barbershop", textX, 34);
+  pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5); pdf.setTextColor(200, 199, 205);
+  const locLine = [SHOP_SETTINGS.location, SHOP_SETTINGS.phone].filter(Boolean).join("  ·  ");
+  if (locLine) pdf.text(locLine, textX, 48);
+
+  pdf.setFont("helvetica", "bold"); pdf.setFontSize(15); pdf.setTextColor(255, 255, 255);
+  pdf.text(title, pageWidth - 40, 34, { align: "right" });
+  pdf.setFont("helvetica", "normal"); pdf.setFontSize(9); pdf.setTextColor(200, 199, 205);
+  pdf.text("Generated " + new Date().toLocaleString("en-KE"), pageWidth - 40, 48, { align: "right" });
+
+  let y = 100;
+  if (identifiers && identifiers.length) {
+    pdf.setDrawColor(216, 212, 200); pdf.setFillColor(251, 250, 247);
+    const rowH = 30;
+    pdf.rect(40, y - 18, pageWidth - 80, rowH, "F");
+    const colW = (pageWidth - 80) / identifiers.length;
+    identifiers.forEach((id, i) => {
+      const x = 50 + i * colW;
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(7); pdf.setTextColor(...PDF_TEXTDIM);
+      pdf.text(String(id.label).toUpperCase(), x, y - 6);
+      pdf.setFont("helvetica", "normal"); pdf.setFontSize(9.5); pdf.setTextColor(27, 29, 34);
+      pdf.text(String(id.value || "—"), x, y + 6);
+    });
+    y += rowH + 6;
+  }
+  return y;
+}
+// Stamps "Powered by Omlin" + page numbers on every page. Call once, right before saving.
+function drawBrandedFooter(pdf) {
+  const pageCount = pdf.internal.getNumberOfPages();
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  for (let i = 1; i <= pageCount; i++) {
+    pdf.setPage(i);
+    pdf.setDrawColor(216, 212, 200); pdf.line(40, pageHeight - 34, pageWidth - 40, pageHeight - 34);
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(8.5); pdf.setTextColor(...PDF_TEXTDIM);
+    pdf.text("Powered by Omlin", 40, pageHeight - 20);
+    pdf.text(`Page ${i} of ${pageCount}`, pageWidth - 40, pageHeight - 20, { align: "right" });
+  }
+}
+function downloadReportPDF(title, identifiers, columns, rows, filename) {
+  const pdf = newBrandedDoc(); if (!pdf) return;
+  const startY = drawBrandedHeader(pdf, title, identifiers);
+  pdf.autoTable({
+    startY,
+    head: [columns.map((c) => c.label)],
+    body: rows.map((r) => columns.map((c) => cellPlainText(c, r))),
+    margin: { left: 40, right: 40, bottom: 44 },
+    styles: { font: "helvetica", fontSize: 8.5, cellPadding: 5, textColor: [27, 29, 34], lineColor: [216, 212, 200] },
+    headStyles: { fillColor: PDF_INK, textColor: [255, 255, 255], fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [239, 237, 231] },
+  });
+  drawBrandedFooter(pdf);
+  pdf.save(filename + ".pdf");
+  toast("PDF downloaded.", "good");
 }
 
 /* ---------- filter bar ---------- */
@@ -1900,7 +2361,17 @@ function renderReports(root) {
   function draw() {
     const cat = currentCategory(), rep = currentReport();
     root.innerHTML = `
-      ${sectionHeader("Business intelligence · " + (DATA.sales.length ? DATA.sales.length + " sales on record" : "no data yet"), "Reports")}
+      <div class="brand-doc-header">
+        <div class="brand-doc-stripe"></div>
+        <div class="brand-doc-top">
+          <div class="brand-doc-id">
+            <img class="brand-doc-logo" src="${SHOP_SETTINGS.logo || ""}" onerror="this.style.background='repeating-linear-gradient(45deg,var(--red) 0 6px,#fff 6px 12px,var(--blue) 12px 18px)';this.removeAttribute('src');" />
+            <div><div class="brand-doc-shop">${escapeHtml(SHOP_SETTINGS.name || "Barbershop")}</div><div class="brand-doc-sub">${escapeHtml(SHOP_SETTINGS.location || "")}</div></div>
+          </div>
+          <div class="brand-doc-title">${escapeHtml(rep.label)}</div>
+        </div>
+        <div class="brand-doc-meta" id="rep-doc-meta"></div>
+      </div>
       <div class="card" style="padding:14px 16px;margin-bottom:14px;">
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
           <select class="filter-select" id="rep-category" style="font-weight:600;">
@@ -1912,7 +2383,8 @@ function renderReports(root) {
         </div>
         <div id="rep-filterbar" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
       </div>
-      <div id="rep-table"></div>`;
+      <div id="rep-table"></div>
+      <div class="powered-by-doc">Powered by <b>Omlin</b></div>`;
 
     document.getElementById("rep-category").addEventListener("change", (e) => {
       categoryKey = e.target.value; reportId = currentCategory().reports[0].id; ctx = { __preset: "All Time", range: null }; draw();
@@ -1924,24 +2396,34 @@ function renderReports(root) {
     renderFilterBar(document.getElementById("rep-filterbar"), rep, ctx, drawTable);
     drawTable();
 
+    function reportIdentifiers(result) {
+      const ids = [
+        { label: "Category", value: cat.label },
+        { label: "Date range", value: ctx.__preset || "All Time" },
+      ];
+      if (ctx.branch && ctx.branch !== "All") ids.push({ label: "Branch", value: ctx.branch });
+      ids.push({ label: "Records", value: String(result.rows.length) });
+      ids.push({ label: "Generated by", value: currentProfile ? currentProfile.name : "—" });
+      return ids;
+    }
+
     function drawTable() {
       let result;
       try { result = rep.run(ctx); }
       catch (err) { result = { columns: [{ key: "name", label: "Error" }], rows: [], searchKeys: [], defaultSort: { key: "name", dir: "asc" } }; console.error(err); }
+      const identifiers = reportIdentifiers(result);
+      const metaEl = document.getElementById("rep-doc-meta");
+      if (metaEl) metaEl.innerHTML = identifiers.map((id) => `<div class="brand-doc-meta-item"><span>${escapeHtml(id.label)}</span><b>${escapeHtml(id.value)}</b></div>`).join("");
       const tableWrap = document.getElementById("rep-table");
       tableWrap.innerHTML = `
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;">
-          <button class="btn btn-sm btn-ghost" id="exp-csv">Export CSV</button>
-          <button class="btn btn-sm btn-ghost" id="exp-xls">Export Excel</button>
-          <button class="btn btn-sm btn-ghost" id="exp-pdf">Export PDF</button>
+          <button class="btn btn-sm btn-primary" id="dl-pdf">${ICONS.download}Download PDF</button>
         </div>
         <div id="rep-table-inner"></div>`;
       mountDataTable(document.getElementById("rep-table-inner"), {
         columns: result.columns, rows: result.rows, searchKeys: result.searchKeys || [], filters: [], defaultSort: result.defaultSort,
       });
-      document.getElementById("exp-csv").onclick = () => exportCSV(result.columns, result.rows, rep.id);
-      document.getElementById("exp-xls").onclick = () => exportExcel(result.columns, result.rows, rep.id);
-      document.getElementById("exp-pdf").onclick = () => exportPDF(rep.label, result.columns, result.rows);
+      document.getElementById("dl-pdf").onclick = () => downloadReportPDF(rep.label, identifiers, result.columns, result.rows, rep.id);
     }
   }
   draw();
@@ -1999,7 +2481,8 @@ function renderStaff(root) {
         : `<button class="btn btn-sm btn-danger" data-act="deactivate" data-uid="${r.uid}" ${isSelf ? "disabled title=\"You can't deactivate yourself\"" : ""}>Deactivate</button>`;
       return `${activeBtn}
         <button class="btn btn-sm btn-ghost" data-act="reset" data-uid="${r.uid}" data-email="${escapeHtml(r.email)}">Reset password</button>
-        <button class="btn btn-sm btn-ghost" data-act="role" data-uid="${r.uid}" data-role="${r.role}">Edit role</button>`;
+        <button class="btn btn-sm btn-ghost" data-act="role" data-uid="${r.uid}" data-role="${r.role}">Edit role</button>
+        ${isAdmin(r) ? "" : `<button class="btn btn-sm btn-ghost" data-act="access" data-uid="${r.uid}">Module access</button>`}`;
     },
     onMount: (container) => {
       container.addEventListener("click", async (e) => {
@@ -2018,6 +2501,9 @@ function renderStaff(root) {
           catch (err) { toast(friendlyAuthError(err), "bad"); }
         } else if (act === "role") {
           openEditRoleModal(uid, btn.dataset.role);
+        } else if (act === "access") {
+          const row = staffDocs.find((s) => s.uid === uid);
+          openEditAccessModal(uid, row ? row.moduleAccess : null);
         }
       });
     },
@@ -2065,12 +2551,18 @@ function openAddStaffModal() {
       <select id="f-role">${ALL_ROLES.filter((r) => r !== "Owner").map((r) => `<option value="${r}">${r}</option>`).join("")}</select>
     </div>
     <div class="field"><label>Temporary password</label><input id="f-pw" value="${tempPw}" /></div>
+    <div class="field">
+      <label>Module access</label>
+      <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:6px;">Tick Read so a module appears in their sidebar, and Write to let them add/edit/delete there. Owners and Managers always have full access regardless of this list.</div>
+      <div id="f-access">${accessCheckboxesHtml()}</div>
+    </div>
     <div id="m-error"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="m-cancel">Cancel</button>
       <button class="btn btn-primary" id="m-submit">Create account</button>
     </div>
   `);
+  wireAccessCheckboxes(document.getElementById("f-access"));
   document.getElementById("m-close").onclick = closeModal;
   document.getElementById("m-cancel").onclick = closeModal;
   document.getElementById("m-submit").onclick = async () => {
@@ -2078,6 +2570,7 @@ function openAddStaffModal() {
     const email = document.getElementById("f-email").value.trim();
     const role = document.getElementById("f-role").value;
     const password = document.getElementById("f-pw").value;
+    const moduleAccess = readAccessCheckboxes(document.getElementById("f-access"));
     const errEl = document.getElementById("m-error");
     errEl.innerHTML = "";
     if (!name || !email || password.length < 6) {
@@ -2089,7 +2582,7 @@ function openAddStaffModal() {
     try {
       const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
       await setDoc(doc(db, "users", cred.user.uid), {
-        name, email, role, active: true, createdAt: serverTimestamp(), createdBy: currentUser.uid,
+        name, email, role, active: true, moduleAccess, createdAt: serverTimestamp(), createdBy: currentUser.uid,
       });
       await signOut(secondaryAuth);
       openModal(`
@@ -2108,6 +2601,38 @@ function openAddStaffModal() {
       try { await signOut(secondaryAuth); } catch (_) {}
       errEl.innerHTML = `<div class="auth-error">${escapeHtml(friendlyAuthError(err))}</div>`;
       btn.disabled = false; btn.textContent = "Create account";
+    }
+  };
+}
+// Checking Write auto-checks Read (write implies read); unchecking Read clears Write.
+function wireAccessCheckboxes(container) {
+  container.querySelectorAll(".am-write").forEach((cb) => cb.addEventListener("change", () => {
+    if (cb.checked) container.querySelector(`.am-read[data-mod="${cb.dataset.mod}"]`).checked = true;
+  }));
+  container.querySelectorAll(".am-read").forEach((cb) => cb.addEventListener("change", () => {
+    if (!cb.checked) container.querySelector(`.am-write[data-mod="${cb.dataset.mod}"]`).checked = false;
+  }));
+}
+function openEditAccessModal(uid, existingAccess) {
+  openModal(`
+    <div class="modal-head"><h3 class="modal-title">Module access</h3><button class="modal-close" id="ea-close">✕</button></div>
+    <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:6px;">Tick Read so a module appears in their sidebar, and Write to let them add/edit/delete there.</div>
+    <div id="ea-access">${accessCheckboxesHtml(existingAccess)}</div>
+    <div id="ea-error"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="ea-cancel">Cancel</button><button class="btn btn-primary" id="ea-save">Save access</button></div>
+  `);
+  wireAccessCheckboxes(document.getElementById("ea-access"));
+  document.getElementById("ea-close").onclick = closeModal;
+  document.getElementById("ea-cancel").onclick = closeModal;
+  document.getElementById("ea-save").onclick = async () => {
+    const moduleAccess = readAccessCheckboxes(document.getElementById("ea-access"));
+    try {
+      await updateDoc(doc(db, "users", uid), { moduleAccess });
+      await logAudit("Updated staff module access", "Medium");
+      toast("Module access updated.", "good");
+      closeModal();
+    } catch (err) {
+      document.getElementById("ea-error").innerHTML = `<div class="auth-error">${escapeHtml(err.message || "Couldn't save access changes.")}</div>`;
     }
   };
 }
@@ -2207,6 +2732,21 @@ function renderSettings(root) {
       <button class="btn btn-primary" id="save-settings">Save shop profile</button>
     </div>
 
+    <div class="card" style="padding:20px;margin-bottom:18px;max-width:560px;">
+      <div class="chart-title" style="margin-bottom:4px;">Appearance</div>
+      <p style="font-size:12.5px;color:var(--text-dim);margin:0 0 12px;">Applies to this device only.</p>
+      <div class="theme-toggle">
+        <button class="theme-opt" id="theme-light" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          Light mode
+        </button>
+        <button class="theme-opt" id="theme-dark" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          Dark mode
+        </button>
+      </div>
+    </div>
+
     <div class="card danger-zone" style="max-width:560px;">
       <div class="chart-title" style="margin-bottom:6px;">Sample data (for testing)</div>
       <p style="font-size:12.5px;color:var(--text-dim);line-height:1.5;margin:0 0 14px;">
@@ -2221,7 +2761,22 @@ function renderSettings(root) {
       <div id="sample-status" style="font-size:12px;color:var(--text-dim);margin-top:10px;"></div>
     </div>`;
 
-  let pendingLogo = SHOP_SETTINGS.logo || "";
+  function syncThemeButtons() {
+    const isDark = document.documentElement.classList.contains("dark-mode");
+    document.getElementById("theme-light").classList.toggle("active", !isDark);
+    document.getElementById("theme-dark").classList.toggle("active", isDark);
+  }
+  syncThemeButtons();
+  document.getElementById("theme-light").onclick = () => {
+    document.documentElement.classList.remove("dark-mode");
+    try { localStorage.setItem("theme", "light"); } catch (e) {}
+    syncThemeButtons();
+  };
+  document.getElementById("theme-dark").onclick = () => {
+    document.documentElement.classList.add("dark-mode");
+    try { localStorage.setItem("theme", "dark"); } catch (e) {}
+    syncThemeButtons();
+  };
   document.getElementById("f-logo").addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -2289,8 +2844,24 @@ async function batchInsert(collectionName, records) {
     await batch.commit();
   }
 }
+// Writes each barber's public profile to `barbers` and their sensitive pay
+// figures (commissionRate/baseSalary/deductions) to a separate `barberPay`
+// doc that shares the same ID — kept apart so payroll-only access can be
+// granted without also exposing it to everyone who can see the Barbers page.
+async function seedBarbersWithPay(barberSeed) {
+  const batch = writeBatch(db);
+  const barberDocs = [];
+  barberSeed.forEach((b) => {
+    const ref = doc(collection(db, "barbers"));
+    batch.set(ref, b);
+    batch.set(doc(db, "barberPay", ref.id), { commissionRate: rInt(25, 35), baseSalary: rInt(14000, 22000), deductions: rInt(500, 1800) });
+    barberDocs.push({ id: ref.id, ...b });
+  });
+  await batch.commit();
+  return barberDocs;
+}
 async function clearAllBusinessData() {
-  const names = ["barbers", "services", "customers", "inventory", "suppliers", "expenses", "appointments", "sales", "purchases", "stockMovements", "attendance", "promotions", "deposits"];
+  const names = ["barbers", "services", "customers", "inventory", "suppliers", "expenses", "appointments", "sales", "purchases", "stockMovements", "attendance", "promotions", "deposits", "salaryPayments", "barberPay"];
   for (const name of names) {
     const snap = await getDocs(collection(db, name));
     const docs = snap.docs;
@@ -2310,6 +2881,13 @@ function daysFromNowStr(n) { const d = new Date(); d.setDate(d.getDate() + n); r
 function rTime() { return `${String(rInt(8, 19)).padStart(2, "0")}:${rPick(["00", "15", "30", "45"])}`; }
 
 async function seedSampleData() {
+  // Seed branches first (if none exist yet) so BRANCHES reflects real docs, not just the fallback names.
+  if (DATA.branches.length === 0) {
+    await batchInsert("branches", [
+      { name: DEFAULT_BRANCH_NAMES[0], location: "Moi Avenue, Nairobi CBD", phone: "+254711000111", manager: "Grace Njeri", status: "Active" },
+      { name: DEFAULT_BRANCH_NAMES[1], location: "Waiyaki Way, Westlands", phone: "+254711000222", manager: "Peter Kamau", status: "Active" },
+    ]);
+  }
   const branches = BRANCHES;
 
   const barberSeed = [
@@ -2318,13 +2896,8 @@ async function seedSampleData() {
     { name: "Dennis Kiptoo", specialty: "Beard Sculpting", branch: branches[0] },
     { name: "Samuel Njoroge", specialty: "Kids & Family", branch: branches[1] },
     { name: "Victor Omondi", specialty: "Premium Grooming", branch: branches[1] },
-  ];
-  const barbers = barberSeed.map((b, i) => ({
-    ...b, phone: `+2547${rInt(10000000, 99999999)}`,
-    status: i === 4 ? "On Leave" : "Active",
-    commissionRate: rInt(25, 35), baseSalary: rInt(14000, 22000), deductions: rInt(500, 1800),
-  }));
-  await batchInsert("barbers", barbers);
+  ].map((b, i) => ({ ...b, phone: `+2547${rInt(10000000, 99999999)}`, status: i === 4 ? "On Leave" : "Active" }));
+  const barbers = await seedBarbersWithPay(barberSeed);
 
   const services = [
     { name: "Classic Haircut", category: "Haircut", price: 300, duration: 30, commissionRate: 30 },
@@ -2523,6 +3096,7 @@ const NAV = [
     { key: "suppliers", label: "Suppliers", icon: "suppliers", render: renderSuppliers },
     { key: "expenses", label: "Expenses", icon: "expenses", render: renderExpenses, adminOnly: true },
     { key: "payroll", label: "Payroll", icon: "payroll", render: renderPayroll, adminOnly: true },
+    { key: "branches", label: "Branches", icon: "branches", render: renderBranches, adminOnly: true },
   ]},
   { group: "Insight", items: [
     { key: "reports", label: "Reports", icon: "reports", render: renderReports, adminOnly: true },
@@ -2543,7 +3117,11 @@ let currentProfile = null;
 function buildNav() {
   const container = document.getElementById("nav-container");
   container.innerHTML = NAV.map((g) => {
-    const items = g.items.filter((it) => !it.adminOnly || isAdmin(currentProfile));
+    const items = g.items.filter((it) => {
+      if (isAdmin(currentProfile)) return true;
+      if (currentProfile && currentProfile.moduleAccess) return canRead(it.key);
+      return !it.adminOnly; // legacy account without a saved access grid
+    });
     if (items.length === 0) return "";
     return `<div class="nav-group">
         <div class="nav-group-label">${escapeHtml(g.group)}</div>

@@ -265,6 +265,13 @@
 <body>
 <script>
   try { if (localStorage.getItem("theme") === "dark") document.documentElement.classList.add("dark-mode"); } catch (e) {}
+  // Paint the last-known shop name/logo immediately, before Firestore responds,
+  // so a returning user never sees the default "Fikirini's" flash past their
+  // own shop name. subscribeSettings() below refreshes this cache on every load.
+  try {
+    var __cachedShop = JSON.parse(localStorage.getItem("shopSettingsCache") || "null");
+    if (__cachedShop && __cachedShop.name) window.__cachedShopSettings = __cachedShop;
+  } catch (e) {}
 </script>
 
 <!-- ============================= AUTH SCREEN ============================= -->
@@ -278,6 +285,14 @@
         <div class="brand-sub" style="color:var(--text-dim);">BARBERSHOP MANAGER</div>
       </div>
     </div>
+    <script>
+      (function () {
+        var s = window.__cachedShopSettings; if (!s) return;
+        var n = document.getElementById("auth-brand-name"); if (n && s.name) n.textContent = s.name;
+        var m = document.getElementById("auth-brand-mark");
+        if (m && s.logo) { m.style.background = 'url("' + s.logo + '") center/cover no-repeat'; m.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.15)"; }
+      })();
+    </script>
     <div id="auth-body"><div class="auth-loading" style="color:var(--text-dim);">Loading...</div></div>
   </div>
 </div>
@@ -292,6 +307,14 @@
         <div class="brand-sub" id="side-brand-sub">BARBERSHOP MANAGER</div>
       </div>
     </div>
+    <script>
+      (function () {
+        var s = window.__cachedShopSettings; if (!s) return;
+        var n = document.getElementById("side-brand-name"); if (n && s.name) n.textContent = s.name;
+        var m = document.getElementById("side-brand-mark");
+        if (m && s.logo) { m.style.background = 'url("' + s.logo + '") center/cover no-repeat'; m.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.15)"; }
+      })();
+    </script>
     <div id="nav-container"></div>
     <div class="sidebar-foot">
       <div class="who-name" id="who-name">—</div>
@@ -311,6 +334,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <div class="crumb"><b id="crumb-brand">Fikirini's</b> / <span id="crumb-page">Dashboard</span></div>
+        <script>(function () { var s = window.__cachedShopSettings; var n = document.getElementById("crumb-brand"); if (s && n && s.name) n.textContent = s.name; })();</script>
       </div>
       <div class="topbar-right">
         <span class="pill pill-warn hidden" id="net-status" style="display:flex;align-items:center;gap:5px;">
@@ -583,12 +607,20 @@ function softRerender() {
    branding still shows correctly even when opened offline.
    ============================================================ */
 const DEFAULT_SHOP_SETTINGS = { name: "Fikirini's", location: "Nairobi, Kenya", phone: "+254 700 000 000", logo: "" };
-let SHOP_SETTINGS = { ...DEFAULT_SHOP_SETTINGS };
+function loadCachedShopSettings() {
+  try {
+    const cached = JSON.parse(localStorage.getItem("shopSettingsCache") || "null");
+    if (cached && cached.name) return { ...DEFAULT_SHOP_SETTINGS, ...cached };
+  } catch (e) { /* ignore malformed/blocked storage */ }
+  return { ...DEFAULT_SHOP_SETTINGS };
+}
+let SHOP_SETTINGS = loadCachedShopSettings();
 let settingsUnsub = null;
 function subscribeSettings() {
   if (settingsUnsub) settingsUnsub();
   settingsUnsub = onSnapshot(doc(db, "settings", "shop"), (snap) => {
     SHOP_SETTINGS = snap.exists() ? { ...DEFAULT_SHOP_SETTINGS, ...snap.data() } : { ...DEFAULT_SHOP_SETTINGS };
+    try { localStorage.setItem("shopSettingsCache", JSON.stringify(SHOP_SETTINGS)); } catch (e) {}
     applyBranding();
     if (currentPage === "settings") softRerender();
   }, () => {});

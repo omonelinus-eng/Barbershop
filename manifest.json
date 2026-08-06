@@ -1,16 +1,16 @@
 {
-  "name": "Fikirini's Barbershop Manager",
-  "short_name": "Fikirini's",
+  "name": "Barbershop Manager",
+  "short_name": "Barbershop",
   "description": "Full accountability system for sales, staff, stock, and cash.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#15171C",
-  "theme_color": "#15171C",
+  "background_color": "#E8681C",
+  "theme_color": "#B8500F",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" }
+    { "src": "./icons/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" }
   ]
 }

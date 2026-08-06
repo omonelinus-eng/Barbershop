@@ -1,17 +1,18 @@
-/* Fikirini's Barbershop Manager — service worker
+/* Barbershop Manager — service worker
    Purpose: keep the app SHELL (this HTML/CSS/JS, manifest, icons) available
    with zero network, so the app never shows a browser "can't be reached" /
    "you are offline" page. Actual business data (sales, customers, etc.)
    is handled separately by Firestore's own offline persistence — this
    worker does not need to know anything about that.
 */
-const CACHE_VERSION = "fikirinis-shell-v3";
+const CACHE_VERSION = "barbershop-shell-v4";
 const SHELL_FILES = [
   "./",
   "./index.html",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
+  "./icons/icon-192-maskable.png",
   "./icons/apple-touch-icon.png",
 ];
 

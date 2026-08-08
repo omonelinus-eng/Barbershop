@@ -47,7 +47,10 @@
     display:flex;flex-direction:column;padding:20px 14px;overflow-y:auto;}
   .brand{display:flex;align-items:center;gap:10px;padding:0 6px 20px;}
   .stripe-mark{border-radius:999px;flex-shrink:0;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25);
-    background:linear-gradient(135deg,#FFB067 0%,#E8681C 55%,#B8500F 100%);}
+    background:linear-gradient(135deg,#FFB067 0%,#E8681C 55%,#B8500F 100%);
+    display:flex;align-items:center;justify-content:center;line-height:1;}
+  .stripe-mark:before{content:"💈";font-size:.6em;}
+  .stripe-mark.has-custom-logo:before{content:"";}
   .brand-name{font-family:var(--font-d);font-size:16px;font-weight:700;line-height:1.1;}
   .brand-sub{font-family:var(--font-b);font-size:10.5px;color:#9A98A0;letter-spacing:.5px;}
   .nav-group{margin-bottom:16px;}
@@ -279,7 +282,7 @@
   <div class="auth-card">
     <div class="auth-stripe"></div>
     <div class="auth-brand">
-      <div class="stripe-mark" id="auth-brand-mark" style="width:30px;height:30px;"></div>
+      <div class="stripe-mark" id="auth-brand-mark" style="width:30px;height:30px;font-size:16px;"></div>
       <div>
         <div class="brand-name" id="auth-brand-name" style="color:var(--text);">Barbershop</div>
         <div class="brand-sub" style="color:var(--text-dim);">BARBERSHOP MANAGER</div>
@@ -290,7 +293,7 @@
         var s = window.__cachedShopSettings; if (!s) return;
         var n = document.getElementById("auth-brand-name"); if (n && s.name) n.textContent = s.name;
         var m = document.getElementById("auth-brand-mark");
-        if (m && s.logo) { m.style.background = 'url("' + s.logo + '") center/cover no-repeat'; m.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.15)"; }
+        if (m && s.logo) { m.style.background = 'url("' + s.logo + '") center/cover no-repeat'; m.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.15)"; m.classList.add("has-custom-logo"); }
       })();
     </script>
     <div id="auth-body"><div class="auth-loading" style="color:var(--text-dim);">Loading...</div></div>
@@ -301,7 +304,7 @@
 <div id="app-shell" class="hidden">
   <aside class="sidebar" id="sidebar">
     <div class="brand">
-      <div class="stripe-mark" id="side-brand-mark" style="width:30px;height:30px;"></div>
+      <div class="stripe-mark" id="side-brand-mark" style="width:30px;height:30px;font-size:16px;"></div>
       <div>
         <div class="brand-name" id="side-brand-name">Barbershop</div>
         <div class="brand-sub" id="side-brand-sub">BARBERSHOP MANAGER</div>
@@ -312,7 +315,7 @@
         var s = window.__cachedShopSettings; if (!s) return;
         var n = document.getElementById("side-brand-name"); if (n && s.name) n.textContent = s.name;
         var m = document.getElementById("side-brand-mark");
-        if (m && s.logo) { m.style.background = 'url("' + s.logo + '") center/cover no-repeat'; m.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.15)"; }
+        if (m && s.logo) { m.style.background = 'url("' + s.logo + '") center/cover no-repeat'; m.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.15)"; m.classList.add("has-custom-logo"); }
       })();
     </script>
     <div id="nav-container"></div>
@@ -639,9 +642,11 @@ function applyBranding() {
     if (SHOP_SETTINGS.logo) {
       el.style.background = `url("${SHOP_SETTINGS.logo}") center/cover no-repeat`;
       el.style.boxShadow = "inset 0 0 0 1px rgba(0,0,0,.15)";
+      el.classList.add("has-custom-logo");
     } else {
       el.style.background = "linear-gradient(135deg,#FFB067 0%,#E8681C 55%,#B8500F 100%)";
       el.style.boxShadow = "inset 0 0 0 2px rgba(0,0,0,.25)";
+      el.classList.remove("has-custom-logo");
     }
   });
 }
@@ -2745,13 +2750,14 @@ function fileToResizedDataUrl(file, maxSize) {
 }
 
 function renderSettings(root) {
+  let pendingLogo = SHOP_SETTINGS.logo || null;
   root.innerHTML = `
     ${sectionHeader("Shop profile & test data", "Settings")}
     <div class="card" style="padding:20px;margin-bottom:18px;max-width:560px;">
       <div class="chart-title" style="margin-bottom:14px;">Shop profile</div>
       <div class="settings-row" style="margin-bottom:16px;">
         <img class="logo-preview" id="logo-preview" src="${SHOP_SETTINGS.logo || ""}" style="${SHOP_SETTINGS.logo ? "" : "display:none;"}" />
-        <div class="stripe-mark logo-preview" id="logo-placeholder" style="${SHOP_SETTINGS.logo ? "display:none;" : ""}"></div>
+        <div class="stripe-mark logo-preview" id="logo-placeholder" style="font-size:34px;${SHOP_SETTINGS.logo ? "display:none;" : ""}"></div>
         <div>
           <input type="file" accept="image/*" id="f-logo" style="font-size:12px;" />
           <div style="font-size:11.5px;color:var(--text-dim);margin-top:4px;">PNG or JPG. Resized automatically.</div>
